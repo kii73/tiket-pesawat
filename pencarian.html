@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pencarian Tiket</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<style>
+		body {
+			font-family: 'Montserrat', Arial, sans-serif;
+			background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+		}
+		.search-form {
+			border-radius: 1rem;
+			background: #fff;
+			box-shadow: 0 2px 16px rgba(30,64,175,0.08);
+		}
+		.result-card {
+			border-radius: 1rem;
+			box-shadow: 0 2px 16px rgba(30,64,175,0.08);
+			transition: box-shadow 0.2s;
+		}
+		.result-card:hover {
+			box-shadow: 0 8px 32px rgba(59,130,246,0.18);
+		}
+		.btn-pilih {
+			background: linear-gradient(90deg, #2563eb 0%, #6366f1 100%);
+			color: #fff;
+			font-weight: 600;
+			border: none;
+		}
+		.btn-pilih:hover {
+			background: linear-gradient(90deg, #6366f1 0%, #2563eb 100%);
+			color: #ffd700;
+		}
+	</style>
+</head>
+<body>
+	<!-- Navbar -->
+	<nav class="navbar navbar-expand-lg navbar-light bg-primary mb-4">
+		<div class="container">
+			<a class="navbar-brand text-white" href="index.html">TiketPesawat</a>
+		</div>
+	</nav>
+
+	<!-- Search Form -->
+	<section class="container mb-4">
+		<div class="search-form p-4 mb-3">
+			<form class="row g-3 align-items-end">
+				<div class="col-md-3">
+					<label for="from" class="form-label">Dari</label>
+					<input type="text" class="form-control" id="from" placeholder="Jakarta">
+				</div>
+				<div class="col-md-3">
+					<label for="to" class="form-label">Ke</label>
+					<input type="text" class="form-control" id="to" placeholder="Bali">
+				</div>
+				<div class="col-md-2">
+					<label for="date" class="form-label">Tanggal</label>
+					<input type="date" class="form-control" id="date">
+				</div>
+				<div class="col-md-2">
+					<label for="jenis" class="form-label">Jenis Transportasi</label>
+					<select class="form-select" id="jenis">
+						<option value="pesawat">Pesawat</option>
+						<option value="kereta">Kereta</option>
+					</select>
+				</div>
+				<div class="col-md-2 d-grid">
+					<button type="submit" class="btn btn-primary">Cari Tiket</button>
+				</div>
+			</form>
+		</div>
+	</section>
+
+	<!-- Hasil Pencarian -->
+	<section class="container">
+		<h3 class="mb-4 fw-bold">Hasil Pencarian</h3>
+		<div class="row g-4">
+			<!-- Contoh hasil pesawat -->
+			<div class="col-md-6">
+				<div class="result-card card p-3">
+					<div class="d-flex align-items-center mb-2">
+						<img src="https://img.icons8.com/ios-filled/50/2563eb/airplane-take-off.png" width="40" class="me-3" alt="Pesawat">
+						<div>
+							<h5 class="mb-0 fw-bold">Garuda Indonesia</h5>
+							<small class="text-muted">GA-123 | Ekonomi</small>
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-6">
+							<span class="fw-bold">Jakarta (CGK)</span><br>
+							<small>08:00</small>
+						</div>
+						<div class="col-6 text-end">
+							<span class="fw-bold">Bali (DPS)</span><br>
+							<small>10:30</small>
+						</div>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="fw-bold fs-5 text-primary">Rp 1.200.000</span>
+						<a href="./konfirmasi.html" class="btn btn-pilih">Pilih Tiket</a>
+					</div>
+				</div>
+			</div>
+			<!-- Contoh hasil kereta -->
+			<div class="col-md-6">
+				<div class="result-card card p-3">
+					<div class="d-flex align-items-center mb-2">
+						<img src="https://img.icons8.com/ios-filled/50/2563eb/airplane-take-off.png" width="40" class="me-3" alt="Pesawat">
+						<div>
+							<h5 class="mb-0 fw-bold">Soekarno Hatta</h5>
+							<small class="text-muted">AB-456 | Eksekutif</small>
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-6">
+							<span class="fw-bold">Jakarta (GMR)</span><br>
+							<small>09:00</small>
+						</div>
+						<div class="col-6 text-end">
+							<span class="fw-bold">Surabaya (SBY)</span><br>
+							<small>17:00</small>
+						</div>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="fw-bold fs-5 text-primary">Rp 650.000</span>
+						<button class="btn btn-pilih">Pilih Tiket</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="result-card card p-3">
+					<div class="d-flex align-items-center mb-2">
+						<img src="https://img.icons8.com/ios-filled/50/2563eb/airplane-take-off.png" width="40" class="me-3" alt="Pesawat">
+						<div>
+							<h5 class="mb-0 fw-bold">Garuda Indonesia</h5>
+							<small class="text-muted">GA-123 | Ekonomi</small>
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-6">
+							<span class="fw-bold">Jakarta (CGK)</span><br>
+							<small>08:00</small>
+						</div>
+						<div class="col-6 text-end">
+							<span class="fw-bold">Bali (DPS)</span><br>
+							<small>10:30</small>
+						</div>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="fw-bold fs-5 text-primary">Rp 1.200.000</span>
+						<button class="btn btn-pilih">Pilih Tiket</button>
+					</div>
+				</div>
+			</div>
+			<!-- Contoh hasil kereta -->
+			<div class="col-md-6">
+				<div class="result-card card p-3">
+					<div class="d-flex align-items-center mb-2">
+						<img src="https://img.icons8.com/ios-filled/50/2563eb/airplane-take-off.png" width="40" class="me-3" alt="Pesawat">
+						<div>
+							<h5 class="mb-0 fw-bold">Soekarno Hatta</h5>
+							<small class="text-muted">AB-456 | Eksekutif</small>
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-6">
+							<span class="fw-bold">Jakarta (GMR)</span><br>
+							<small>09:00</small>
+						</div>
+						<div class="col-6 text-end">
+							<span class="fw-bold">Surabaya (SBY)</span><br>
+							<small>17:00</small>
+						</div>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="fw-bold fs-5 text-primary">Rp 650.000</span>
+						<button class="btn btn-pilih">Pilih Tiket</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="result-card card p-3">
+					<div class="d-flex align-items-center mb-2">
+						<img src="https://img.icons8.com/ios-filled/50/2563eb/airplane-take-off.png" width="40" class="me-3" alt="Pesawat">
+						<div>
+							<h5 class="mb-0 fw-bold">Garuda Indonesia</h5>
+							<small class="text-muted">GA-123 | Ekonomi</small>
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-6">
+							<span class="fw-bold">Jakarta (CGK)</span><br>
+							<small>08:00</small>
+						</div>
+						<div class="col-6 text-end">
+							<span class="fw-bold">Bali (DPS)</span><br>
+							<small>10:30</small>
+						</div>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="fw-bold fs-5 text-primary">Rp 1.200.000</span>
+						<button class="btn btn-pilih">Pilih Tiket</button>
+					</div>
+				</div>
+			</div>
+			<!-- Contoh hasil kereta -->
+			<div class="col-md-6">
+				<div class="result-card card p-3">
+					<div class="d-flex align-items-center mb-2">
+						<img src="https://img.icons8.com/ios-filled/50/2563eb/airplane-take-off.png" width="40" class="me-3" alt="Pesawat">
+						<div>
+							<h5 class="mb-0 fw-bold">Soekarno Hatta</h5>
+							<small class="text-muted">AB-456 | Eksekutif</small>
+						</div>
+					</div>
+					<div class="row mb-2">
+						<div class="col-6">
+							<span class="fw-bold">Jakarta (GMR)</span><br>
+							<small>09:00</small>
+						</div>
+						<div class="col-6 text-end">
+							<span class="fw-bold">Surabaya (SBY)</span><br>
+							<small>17:00</small>
+						</div>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<span class="fw-bold fs-5 text-primary">Rp 650.000</span>
+						<button class="btn btn-pilih">Pilih Tiket</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Footer -->
+	<footer class="footer text-white text-center py-4 mt-5" style="background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);">
+		<div class="container">
+			<p class="mb-0">&copy; 2025 TiketPesawat. All rights reserved.</p>
+		</div>
+	</footer>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
