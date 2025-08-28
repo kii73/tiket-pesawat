@@ -1,113 +1,144 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Konfirmasi Pesanan Tiket</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<style>
-		body {
-			font-family: 'Montserrat', Arial, sans-serif;
-			background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
-		}
-		.form-card {
-			border-radius: 1rem;
-			background: #fff;
-			box-shadow: 0 2px 16px rgba(30,64,175,0.08);
-			max-width: 500px;
-			margin: auto;
-		}
-		.footer {
-			background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
-		}
-	</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Data & Penerbangan - Tiket Pesawat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #1a73e8 0%, #67c6ff 100%);
+            font-family: 'Montserrat', Arial, sans-serif;
+            min-height: 100vh;
+        }
+        .konfirmasi-card {
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(26,115,232,0.13);
+            margin-top: 80px;
+            margin-bottom: 80px;
+            overflow: hidden;
+        }
+        .plane-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .plane-icon svg {
+            width: 48px;
+            height: 48px;
+            fill: #1a73e8;
+            filter: drop-shadow(0 2px 8px #67c6ff55);
+        }
+        .btn-konfirmasi {
+            background: linear-gradient(90deg, #1a73e8 60%, #67c6ff 100%);
+            border: none;
+            font-weight: 700;
+            color: #fff;
+        }
+        .btn-konfirmasi:hover {
+            background: linear-gradient(90deg, #1669c1 60%, #4bb7f5 100%);
+            color: #fff;
+        }
+        .form-label {
+            color: #1a73e8;
+            font-weight: 500;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a73e8;
+            margin-bottom: 12px;
+            margin-top: 18px;
+        }
+    </style>
 </head>
 <body>
-	<!-- Navbar -->
-	<nav class="navbar navbar-expand-lg navbar-light bg-primary mb-4">
-		<div class="container">
-			<a class="navbar-brand text-white" href="index.html">TiketPesawat</a>
-		</div>
-	</nav>
-
-	<!-- Konfirmasi Pesanan -->
-	<section class="container py-4">
-		<div class="row justify-content-center align-items-start g-4">
-			<div class="col-lg-5">
-				<div class="form-card p-4 mb-4 mb-lg-0">
-					<h2 class="fw-bold mb-3 text-center">Konfirmasi Pesanan Tiket</h2>
-					<p class="text-center mb-4">Silakan isi data diri penumpang di bawah ini.<br><span class="text-warning">Pembayaran dilakukan di bandara saat check-in.</span></p>
-					<form>
-						<div class="mb-3">
-							<label for="nama" class="form-label">Nama Lengkap</label>
-							<input type="text" class="form-control" id="nama" placeholder="Nama sesuai KTP" required>
-						</div>
-						<div class="mb-3">
-							<label for="nik" class="form-label">NIK / No. Identitas</label>
-							<input type="text" class="form-control" id="nik" placeholder="Nomor KTP / Paspor" required>
-						</div>
-						<div class="mb-3">
-							<label for="telepon" class="form-label">No. Telepon</label>
-							<input type="tel" class="form-control" id="telepon" placeholder="08xxxxxxxxxx" required>
-						</div>
-						<div class="mb-3">
-							<label for="email" class="form-label">Email</label>
-							<input type="email" class="form-control" id="email" placeholder="email@domain.com" required>
-						</div>
-						<div class="mb-3">
-							<label for="alamat" class="form-label">Alamat</label>
-							<textarea class="form-control" id="alamat" rows="2" placeholder="Alamat lengkap" required></textarea>
-						</div>
-						<div class="mb-3">
-							<label for="catatan" class="form-label">Catatan (opsional)</label>
-							<input type="text" class="form-control" id="catatan" placeholder="Misal: permintaan khusus, dsb.">
-						</div>
-						<button type="submit" class="btn btn-primary w-100">Konfirmasi Pesanan</button>
-					</form>
-				</div>
-			</div>
-			<div class="col-lg-7">
-				<div class="mb-4">
-                    <div class="text-center">
-						<img src="https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?auto=format&fit=crop&w=500&q=80" alt="Pesawat" class="img-fluid rounded shadow" style="max-width:100%;">
-						<p class="mt-2 text-muted">Pastikan data diri sesuai identitas dan simpan bukti pesanan untuk proses di bandara.</p>
-					</div>
-					<div class="card shadow-sm border-0 mb-3">
-						<div class="card-body">
-							<h5 class="fw-bold mb-2"><img src="https://img.icons8.com/ios-filled/32/2563eb/ticket.png" class="me-2"/> Ringkasan Pesanan</h5>
-							<ul class="list-unstyled mb-0">
-								<li><strong>Transportasi:</strong> Pesawat Garuda Indonesia</li>
-								<li><strong>Rute:</strong> Jakarta (CGK) &rarr; Bali (DPS)</li>
-								<li><strong>Tanggal Berangkat:</strong> 21 Agustus 2025</li>
-								<li><strong>Jam:</strong> 08:00 - 10:30</li>
-								<li><strong>Kelas:</strong> Ekonomi</li>
-								<li><strong>Harga:</strong> Rp 1.200.000</li>
-							</ul>
-						</div>
-					</div>
-					<div class="card shadow-sm border-0 mb-3">
-						<div class="card-body">
-							<h5 class="fw-bold mb-2"><img src="https://img.icons8.com/ios-filled/32/2563eb/airport.png" class="me-2"/> Info Bandara</h5>
-							<ul class="list-unstyled mb-0">
-								<li><strong>Check-in:</strong> Terminal 3 Soekarno-Hatta</li>
-								<li><strong>Pembayaran:</strong> Loket Garuda Indonesia</li>
-								<li><strong>Waktu Check-in:</strong> Minimal 2 jam sebelum keberangkatan</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<!-- Footer -->
-	<footer class="footer text-white text-center py-4 mt-5">
-		<div class="container">
-			<p class="mb-0">&copy; 2025 TiketPesawat. All rights reserved.</p>
-		</div>
-	</footer>
-
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-9">
+                <div class="card konfirmasi-card p-4">
+                    <div class="plane-icon">
+                        <svg viewBox="0 0 48 48">
+                            <path d="M44.5 6.5L3.5 22.5C2.7 22.8 2.7 23.9 3.5 24.2L13.5 28.5L20.5 44.5C20.8 45.3 21.9 45.3 22.2 44.5L26.5 34.5L36.5 44.5C37.1 45.1 38.1 44.7 38.1 43.9V34.5L44.5 31.5C45.3 31.2 45.3 30.1 44.5 29.8L34.5 25.5L44.5 6.5Z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-center mb-4" style="color:#1a73e8;font-weight:700;">Isi Data & Detail Penerbangan</h2>
+                    <form onsubmit="event.preventDefault(); window.location.href='kode.html';">
+                        <div class="section-title">Data Penerbangan</div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label for="asal" class="form-label">Kota Asal</label>
+                                <input type="text" class="form-control" id="asal" name="asal" placeholder="Contoh: Jakarta" required>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label for="tujuan" class="form-label">Kota Tujuan</label>
+                                <input type="text" class="form-control" id="tujuan" name="tujuan" placeholder="Contoh: Surabaya" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label for="tanggal" class="form-label">Tanggal Keberangkatan</label>
+                                <input type="date" class="form-control" id="tanggal" name="tanggal" required>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label for="maskapai" class="form-label">Maskapai</label>
+                                <input type="text" class="form-control" id="maskapai" name="maskapai" placeholder="Contoh: Garuda Indonesia" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="mb-3 col-md-6">
+                                <label for="kelas" class="form-label">Kelas Penerbangan</label>
+                                <select class="form-select" id="kelas" name="kelas" required>
+                                    <option value="">Pilih kelas</option>
+                                    <option value="Ekonomi">Ekonomi</option>
+                                    <option value="Bisnis">Bisnis</option>
+                                    <option value="First Class">First Class</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 col-md-6">
+                                <label for="jumlah" class="form-label">Jumlah Penumpang</label>
+                                <input type="number" class="form-control" id="jumlah" name="jumlah" min="1" max="10" value="1" required>
+                            </div>
+                        </div>
+                        <div class="section-title">Data Penumpang</div>
+                        <div class="mb-3">
+                            <label for="nama" class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="nama" name="nama" placeholder="Masukkan nama lengkap" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nik" class="form-label">NIK</label>
+                            <input type="text" class="form-control" id="nik" name="nik" placeholder="Masukkan NIK" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gender" class="form-label">Jenis Kelamin</label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="">Pilih jenis kelamin</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="birthdate" class="form-label">Tanggal Lahir</label>
+                            <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Nomor HP</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Masukkan nomor HP aktif" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="alamat" class="form-label">Alamat</label>
+                            <textarea class="form-control" id="alamat" name="alamat" rows="2" placeholder="Masukkan alamat lengkap" required></textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-konfirmasi btn-lg mt-2">Konfirmasi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
