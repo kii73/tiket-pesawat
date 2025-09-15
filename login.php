@@ -85,7 +85,7 @@ if (isset($_POST['login'])) {
                         <div class="plane-icon animate__animated animate__zoomIn">
                             <i class="bi bi-airplane-fill text-black" style="font-size: 1.8rem;"></i>
                         </div>
-                        <h2 class="mb-3 fw-bold">Login <span class="text-primary-gradient">Tiket Pesawat</span></h2>
+                        <h2 class="mb-3 fw-bold">Login <span class="text-primary-gradient">kyy air line</span></h2>
                         <p class="text-muted">Masuk untuk memesan tiket pesawat Anda</p>
                     </div>
 

@@ -25,7 +25,7 @@ include "./proteksi.php";
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
-            <a class="navbar-brand text-white animate__animated animate__fadeIn" href="#">TiketPesawat</a>
+            <a class="navbar-brand text-white animate__animated animate__fadeIn" href="#">Kyy air line</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>

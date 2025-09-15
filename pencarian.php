@@ -56,7 +56,7 @@ if (isset($_COOKIE["remember_token"])) {
 	<nav class="navbar navbar-expand-lg navbar-light fixed-top">
 		<div class="container">
 			<a class="navbar-brand text-white animate__animated animate__fadeIn" href="index.php">
-				<i class="bi bi-airplane me-2"></i>TiketPesawat
+				<i class="bi bi-airplane me-2"></i>Kyy air line
 			</a>
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
