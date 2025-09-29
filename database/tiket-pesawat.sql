@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 6.0.0-dev+20250829.99d1a9b7cd
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 14, 2025 at 07:39 AM
--- Server version: 8.4.3
--- PHP Version: 8.3.16
+-- Waktu pembuatan: 29 Sep 2025 pada 06.06
+-- Versi server: 8.0.30
+-- Versi PHP: 8.1.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `kode`
+-- Struktur dari tabel `kode`
 --
 
 CREATE TABLE `kode` (
@@ -35,16 +35,46 @@ CREATE TABLE `kode` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `kode`
+-- Dumping data untuk tabel `kode`
 --
 
 INSERT INTO `kode` (`id`, `id_pesawat`, `id_user`, `kode`) VALUES
-(4, 4, 4, 'QWAWAQ');
+(4, 4, 4, 'QWAWAQ'),
+(5, 4, 2, 'TBWNHI'),
+(6, 3, 2, 'RVYQXQ');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pesawat`
+-- Struktur dari tabel `penerbagan`
+--
+
+CREATE TABLE `penerbagan` (
+  `id` int NOT NULL,
+  `kode_penerbagan` int NOT NULL,
+  `maskapai` varchar(100) NOT NULL,
+  `bandara_asal` varchar(50) NOT NULL,
+  `bandara_tujuan` varchar(50) NOT NULL,
+  `tanggal_berangkat` date NOT NULL,
+  `jam_berangkat` time NOT NULL,
+  `tanggal_tiba` date NOT NULL,
+  `jam_tiba` time NOT NULL,
+  `durasi` varchar(50) NOT NULL,
+  `harga_tiket` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `penerbagan`
+--
+
+INSERT INTO `penerbagan` (`id`, `kode_penerbagan`, `maskapai`, `bandara_asal`, `bandara_tujuan`, `tanggal_berangkat`, `jam_berangkat`, `tanggal_tiba`, `jam_tiba`, `durasi`, `harga_tiket`) VALUES
+(2, 23234, 'garuda indonesia', 'sukarno', 'burangrai', '2025-09-19', '11:52:00', '2025-09-17', '02:50:00', '2jam', '600000'),
+(3, 23234, 'garuda indonesia', 'sukarno', 'burangrai', '2025-09-10', '11:55:00', '2025-09-08', '11:54:00', '2jam', '3444444');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `pesawat`
 --
 
 CREATE TABLE `pesawat` (
@@ -63,7 +93,7 @@ CREATE TABLE `pesawat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `pesawat`
+-- Dumping data untuk tabel `pesawat`
 --
 
 INSERT INTO `pesawat` (`id`, `slug`, `nama`, `no_penerbangan`, `kelas`, `asal`, `tujuan`, `waktu_berangkat`, `harga`, `created_at`, `updated_at`, `waktu_tiba`) VALUES
@@ -71,7 +101,7 @@ INSERT INTO `pesawat` (`id`, `slug`, `nama`, `no_penerbangan`, `kelas`, `asal`, 
 (4, 'garuda-indonesia-ga-001', 'Garuda Indonesia', 'GA-001', 'Ekonomi', 'Bandung', 'Jakarta', '2025-09-13 10:19:33', 1200000.00, '2025-09-13 03:20:26', '2025-09-13 03:20:26', '2025-09-13 10:36:33');
 
 --
--- Triggers `pesawat`
+-- Trigger `pesawat`
 --
 DELIMITER $$
 CREATE TRIGGER `auto_slug` BEFORE INSERT ON `pesawat` FOR EACH ROW BEGIN
@@ -83,7 +113,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Struktur dari tabel `users`
 --
 
 CREATE TABLE `users` (
@@ -101,12 +131,12 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `users`
+-- Dumping data untuk tabel `users`
 --
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`, `role`, `remember_token`) VALUES
-(1, 'Admin', 'admin', 'admin@gmail.com', '08827347897', 'Laki-laki', '2007-09-01', 'Rongga', '$2y$10$JrcU2.PS9Y1h26iVX8KPtebGaqjVafY7AYwk2qOYQMQoxCQCbxzMG', 'admin', '7af248ab-8f1c-4eba-849b-f9128411bdb4'),
-(2, 'Fahmi XD', 'fahmixd', 'guesjis@gmail.com', '0847574545454', 'Laki-laki', '2025-09-25', 'Kp. CIlangari', '$2y$10$5sLTnUOkuwlVAdyyr4Yw0exLqBLCYsN6AorSnEhI1DsZdHpnryPA6', 'user', '489fc76c-5f91-4255-b6ac-b2efe08761df'),
+(1, 'Admin', 'admin', 'admin@gmail.com', '08827347897', 'Laki-laki', '2007-09-01', 'Rongga', '$2y$10$JrcU2.PS9Y1h26iVX8KPtebGaqjVafY7AYwk2qOYQMQoxCQCbxzMG', 'admin', 'f2761484-9125-4ac1-bb73-ca6e9bf25469'),
+(2, 'Fahmi XD', 'fahmixd', 'guesjis@gmail.com', '0847574545454', 'Laki-laki', '2025-09-25', 'Kp. CIlangari', '$2y$10$5sLTnUOkuwlVAdyyr4Yw0exLqBLCYsN6AorSnEhI1DsZdHpnryPA6', 'user', 'fcd97e02-e9e7-4bec-87eb-c4dd603829e9'),
 (4, 'Mufly', 'mufly', 'ilham@gmail.com', '0847574545454', 'Laki-laki', '2025-09-22', 'Rongga', '$2y$10$Hc7sWnxi7IKmPKYzIqN/YeiLj6l4vEo/tXrav/Dp.OYlAt4aUA9Ye', 'user', '181eb37d-d0c4-40cb-a5ed-45e715e50ab4');
 
 --
@@ -114,7 +144,7 @@ INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`
 --
 
 --
--- Indexes for table `kode`
+-- Indeks untuk tabel `kode`
 --
 ALTER TABLE `kode`
   ADD PRIMARY KEY (`id`),
@@ -123,45 +153,57 @@ ALTER TABLE `kode`
   ADD KEY `id_user` (`id_user`);
 
 --
--- Indexes for table `pesawat`
+-- Indeks untuk tabel `penerbagan`
+--
+ALTER TABLE `penerbagan`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `pesawat`
 --
 ALTER TABLE `pesawat`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `users`
+-- Indeks untuk tabel `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `kode`
+-- AUTO_INCREMENT untuk tabel `kode`
 --
 ALTER TABLE `kode`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT for table `pesawat`
+-- AUTO_INCREMENT untuk tabel `penerbagan`
+--
+ALTER TABLE `penerbagan`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT untuk tabel `pesawat`
 --
 ALTER TABLE `pesawat`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- Constraints for dumped tables
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
 
 --
--- Constraints for table `kode`
+-- Ketidakleluasaan untuk tabel `kode`
 --
 ALTER TABLE `kode`
   ADD CONSTRAINT `id_hotel` FOREIGN KEY (`id_pesawat`) REFERENCES `pesawat` (`id`),
