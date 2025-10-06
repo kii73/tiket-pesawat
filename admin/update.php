@@ -3,7 +3,7 @@ include "boot.php";
 include "../koneksi.php";
 
 $id = $_GET['id'];
-$tampil = $konek->query("select*from penerbagan where id='$id'");
+$tampil = $mysql->query("select*from penerbagan where id='$id'");
 $data = $tampil->fetch_array();
 ?>
 
@@ -66,11 +66,22 @@ $data = $tampil->fetch_array();
 
 <?php
 if (isset($_POST['simpan'])) {
-  include "koneksi.php";
-  $nama = $_POST['nama'];
-  $kelas = $_POST['kelas'];
-  $jurusan = $_POST['jurusan'];
-
-  $simpan = $konek->query("update siswa set Nama='$_POST[nama]',Kelas='$_POST[kelas]',Jurusan='$_POST[jurusan]'where No='$id'");
+  include "../koneksi.php";
+   $kode_penerbagan = $_POST['kode_penerbagan'];
+  $maskapai = $_POST['maskapai'];
+  $bandara_asal = $_POST['bandara_asal'];
+  $bandara_tujuan = $_POST['bandara_tujuan'];
+  $tanggal_berangkat = $_POST['tanggal_berangkat'];
+  $jam_berangkat = $_POST['jam_berangkat'];
+  $tanggal_tiba = $_POST['tanggal_tiba'];
+  $jam_tiba = $_POST['jam_tiba'];
+  $durasi = $_POST['durasi'];
+  $harga_tiket = $_POST['harga_tiket'];
+  $simpan = $mysql->query("UPDATE penerbagan SET kode_penerbagan='$_POST[kode_penerbagan]',maskapai='$_POST[maskapai]',bandara_asal='$_POST[bandara_asal]',bandara_tujuan='$_POST[bandara_tujuan]',tanggal_berangkat='$_POST[tanggal_berangkat]',jam_berangkat='$_POST[jam_berangkat]',tanggal_tiba='$_POST[tanggal_tiba]',jam_tiba='$_POST[jam_tiba]',durasi='$_POST[durasi]',harga_tiket='$_POST[harga_tiket]' where id='$id'");
+?>
+  <script>
+    document.location.href = 'data.php';
+  </script>
+<?php
 }
 ?>

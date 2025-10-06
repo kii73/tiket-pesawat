@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 29 Sep 2025 pada 06.06
+-- Waktu pembuatan: 06 Okt 2025 pada 04.15
 -- Versi server: 8.0.30
 -- Versi PHP: 8.1.10
 
@@ -60,16 +60,18 @@ CREATE TABLE `penerbagan` (
   `tanggal_tiba` date NOT NULL,
   `jam_tiba` time NOT NULL,
   `durasi` varchar(50) NOT NULL,
-  `harga_tiket` varchar(100) NOT NULL
+  `harga_tiket` varchar(100) NOT NULL,
+  `gambar` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data untuk tabel `penerbagan`
 --
 
-INSERT INTO `penerbagan` (`id`, `kode_penerbagan`, `maskapai`, `bandara_asal`, `bandara_tujuan`, `tanggal_berangkat`, `jam_berangkat`, `tanggal_tiba`, `jam_tiba`, `durasi`, `harga_tiket`) VALUES
-(2, 23234, 'garuda indonesia', 'sukarno', 'burangrai', '2025-09-19', '11:52:00', '2025-09-17', '02:50:00', '2jam', '600000'),
-(3, 23234, 'garuda indonesia', 'sukarno', 'burangrai', '2025-09-10', '11:55:00', '2025-09-08', '11:54:00', '2jam', '3444444');
+INSERT INTO `penerbagan` (`id`, `kode_penerbagan`, `maskapai`, `bandara_asal`, `bandara_tujuan`, `tanggal_berangkat`, `jam_berangkat`, `tanggal_tiba`, `jam_tiba`, `durasi`, `harga_tiket`, `gambar`) VALUES
+(2, 232344, 'garuda indonesia', 'sukarno', 'burangrai', '2025-09-19', '11:52:00', '2025-09-17', '02:50:00', '2jam', '600000', ''),
+(3, 23234, 'garuda indonesia', 'sukarno', 'burangrai', '2025-09-10', '11:55:00', '2025-09-08', '11:54:00', '2jam', '3444444', ''),
+(4, 2323423, 'garuda indonesia', 'kartajati', 'husaein', '2025-10-08', '14:22:00', '2025-10-23', '16:44:00', '2jam', '600000', '');
 
 -- --------------------------------------------------------
 
@@ -135,9 +137,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`, `role`, `remember_token`) VALUES
-(1, 'Admin', 'admin', 'admin@gmail.com', '08827347897', 'Laki-laki', '2007-09-01', 'Rongga', '$2y$10$JrcU2.PS9Y1h26iVX8KPtebGaqjVafY7AYwk2qOYQMQoxCQCbxzMG', 'admin', 'f2761484-9125-4ac1-bb73-ca6e9bf25469'),
 (2, 'Fahmi XD', 'fahmixd', 'guesjis@gmail.com', '0847574545454', 'Laki-laki', '2025-09-25', 'Kp. CIlangari', '$2y$10$5sLTnUOkuwlVAdyyr4Yw0exLqBLCYsN6AorSnEhI1DsZdHpnryPA6', 'user', 'fcd97e02-e9e7-4bec-87eb-c4dd603829e9'),
-(4, 'Mufly', 'mufly', 'ilham@gmail.com', '0847574545454', 'Laki-laki', '2025-09-22', 'Rongga', '$2y$10$Hc7sWnxi7IKmPKYzIqN/YeiLj6l4vEo/tXrav/Dp.OYlAt4aUA9Ye', 'user', '181eb37d-d0c4-40cb-a5ed-45e715e50ab4');
+(4, 'Mufly', 'mufly', 'ilham@gmail.com', '0847574545454', 'Laki-laki', '2025-09-22', 'Rongga', '$2y$10$Hc7sWnxi7IKmPKYzIqN/YeiLj6l4vEo/tXrav/Dp.OYlAt4aUA9Ye', 'user', '181eb37d-d0c4-40cb-a5ed-45e715e50ab4'),
+(5, 'admin', 'admin', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'dfgdfgg', '$2y$10$KHgGOuepkbrigbvuW/uUhOsmdLJzwfIJSHLBuB6xYkD8RhdSMiPaC', 'admin', 'edcad641-1b04-48ae-878d-793677f5d65d');
 
 --
 -- Indexes for dumped tables
@@ -184,7 +186,7 @@ ALTER TABLE `kode`
 -- AUTO_INCREMENT untuk tabel `penerbagan`
 --
 ALTER TABLE `penerbagan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `pesawat`
@@ -196,7 +198,7 @@ ALTER TABLE `pesawat`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)

@@ -72,7 +72,7 @@ if (isset($_POST['simpan'])) {
   $harga_tiket = $_POST['harga_tiket'];
 
 
-  $simpan = $konek->query("INSERT INTO `penerbagan` (`kode_penerbagan`, `maskapai`, `bandara_asal`, `bandara_tujuan`, `tanggal_berangkat`, `jam_berangkat`, `tanggal_tiba`, `jam_tiba`, `durasi`, `harga_tiket`) VALUES ($kode_penerbagan,'$maskapai','$bandara_asal','$bandara_tujuan','$tanggal_berangkat','$jam_berangkat','$tanggal_tiba','$jam_tiba','$durasi','$harga_tiket')");
+  $simpan = $mysql->query("INSERT INTO `penerbagan` (`kode_penerbagan`, `maskapai`, `bandara_asal`, `bandara_tujuan`, `tanggal_berangkat`, `jam_berangkat`, `tanggal_tiba`, `jam_tiba`, `durasi`, `harga_tiket`) VALUES ($kode_penerbagan,'$maskapai','$bandara_asal','$bandara_tujuan','$tanggal_berangkat','$jam_berangkat','$tanggal_tiba','$jam_tiba','$durasi','$harga_tiket')");
 
 ?>
   <script>

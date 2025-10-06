@@ -43,7 +43,7 @@
         </ul>
         <form class="d-flex" role="search" action="cari.php" method="post" target="wadah">
           <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="cari" />
-          <button class="btn btn-outline-success" type="submit">Search</button>
+          <button class="btn btn-outline-success" type="submit">cari</button>
         </form>
       </div>
     </div>
@@ -58,7 +58,7 @@
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
         <a href="input.php" class="list-group-item" target="wadah">LAPORAN</a>
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
-        <a href="login.php" class="list-group-item" target="wadah">login</a>
+        <a href="index.php" class="list-group-item" target="wadah">log out</a>
       </ul>
     </div>
 

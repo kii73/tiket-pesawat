@@ -20,11 +20,19 @@ if (isset($_POST['login'])) {
         setcookie("remember_token", $remember_token, 0, "/");
 
         if ($isVerify) {
+            if ($first_data["role"] == "admin") {
 ?>
-            <script>
-                window.location.href = "index.php";
-            </script>
+                <script>
+                    window.location.href = "admin";
+                </script>
+            <?php
+            } else {
+            ?>
+                <script>
+                    window.location.href = "index.php";
+                </script>
 <?php
+            }
         }
     }
 }
@@ -43,7 +51,7 @@ if (isset($_POST['login'])) {
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="./assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'%3E%3Cpath d='M21.5,4.5L3.5,11.5C2.7,11.8,2.7,12.9,3.5,13.2L7.5,15L9.5,19.5C9.8,20.3,10.9,20.3,11.2,19.5L12.5,16.5L16.5,20.5C17.1,21.1,18.1,20.7,18.1,19.9V16.5L21.5,15.5C22.3,15.2,22.3,14.1,21.5,13.8L16.5,11.5L21.5,4.5Z'/%3E%3C/svg%3E">
 
     <style>
@@ -134,7 +142,7 @@ if (isset($_POST['login'])) {
             </div>
         </div>
     </div>
-    
+
     <!-- Particles Background -->
     <div id="particles-js" class="particles-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -145,7 +153,7 @@ if (isset($_POST['login'])) {
         document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             const icon = this.querySelector('i');
-            
+
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 icon.classList.remove('bi-eye');
@@ -156,7 +164,7 @@ if (isset($_POST['login'])) {
                 icon.classList.add('bi-eye');
             }
         });
-        
+
         // Form validation
         (function() {
             'use strict';
@@ -171,22 +179,68 @@ if (isset($_POST['login'])) {
                 }, false);
             });
         })();
-        
+
         // Initialize particles.js
         particlesJS('particles-js', {
             particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: '#2563eb' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.5, random: false },
-                size: { value: 3, random: true },
-                line_linked: { enable: true, distance: 150, color: '#2563eb', opacity: 0.4, width: 1 },
-                move: { enable: true, speed: 2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
+                number: {
+                    value: 80,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: '#2563eb'
+                },
+                shape: {
+                    type: 'circle'
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false
+                },
+                size: {
+                    value: 3,
+                    random: true
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: '#2563eb',
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
             },
             interactivity: {
                 detect_on: 'canvas',
-                events: { onhover: { enable: false, mode: 'grab' }, onclick: { enable: false, mode: 'push' } },
-                modes: { grab: { distance: 140, line_linked: { opacity: 1 } } }
+                events: {
+                    onhover: {
+                        enable: false,
+                        mode: 'grab'
+                    },
+                    onclick: {
+                        enable: false,
+                        mode: 'push'
+                    }
+                },
+                modes: {
+                    grab: {
+                        distance: 140,
+                        line_linked: {
+                            opacity: 1
+                        }
+                    }
+                }
             },
             retina_detect: true
         });

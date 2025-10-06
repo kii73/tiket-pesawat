@@ -20,7 +20,7 @@
 
     <tbody>
       <?php include "../koneksi.php";
-      $tampil = $konek->query("select*from penerbagan");
+      $tampil = $mysql->query("select*from penerbagan");
       foreach ($tampil as $data) {
         @$no++;
       ?>

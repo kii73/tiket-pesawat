@@ -2,7 +2,7 @@
 include "../koneksi.php";
 $id=$_GET['id'];
 
-$del=$konek->query("DELETE FROM penerbagan WHERE id='$id'");
+$del=$mysql->query("DELETE FROM penerbagan WHERE id='$id'");
 
 ?>
 

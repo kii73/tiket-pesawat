@@ -19,8 +19,8 @@
   </thead>
 
   <tbody>
-    <?php include "koneksi.php";
-    $tampil=$konek->query("select*from penerbagan where Nama like'$_POST[cari]%' or Kelas like'$_POST[cari]%'");
+    <?php include "../koneksi.php";
+    $tampil=$mysql->query("SELECT*FROM penerbagan where kode_penerbagan like'$_POST[cari]%' or maskapai like'$_POST[cari]%'");
     foreach ($tampil as $data) {
       @$no++;
         ?>
@@ -37,10 +37,10 @@
       <td><?=$data['durasi']?></td>
       <td><?=$data['harga_tiket']?></td>
       <td>
-        <a href="delete.php?id=<?=$data['No'];?>" onClick="return confirm('apakah anda yakin?');">
-          <i class="bi bi-trash3-fill text-danger"></i></button></a>
+        <a href="delete.php?id=<?=$data['id'];?>"onClick="return confirm('apakah anda yakin?');">
+           <i class="bi bi-trash3-fill text-danger"></i></button></a>
 
-          <a href="update.php?id=<?=$data['No'];?>" onClick="return confirm;">
+          <a href="update.php?id=<?=$data['id'];?>" onClick="return confirm;">
             <i class="bi bi-pencil-square"></i></button></a>
     </td>
     </tr>
