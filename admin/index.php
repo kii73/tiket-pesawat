@@ -10,7 +10,7 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg bg-danger">
+  <nav class="navbar navbar-expand-lg bg-primary">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">Navbar</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@
           </li>
         </ul>
         <form class="d-flex" role="search" action="cari.php" method="post" target="wadah">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="cari" />
+          <input class="form-control me-2" type="search" placeholder="cari" aria-label="Search" name="cari" />
           <button class="btn btn-outline-success" type="submit">cari</button>
         </form>
       </div>
@@ -53,7 +53,7 @@
   <div class="row">
     <div class="col-3 mt-3">
       <ul class="list-group">
-        <li class="list-group-item bg-danger"><i class="bi bi-person-circle me-2 text-warning"></i>MENU</li>
+        <li class="list-group-item bg-primary"><i class="bi bi-person-circle me-2 text-dengger"></i>MENU</li>
         <a href="data.php" class="list-group-item" target="wadah">DATA TIKET</a>
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
         <a href="input.php" class="list-group-item" target="wadah">LAPORAN</a>
