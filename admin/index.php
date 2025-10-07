@@ -21,25 +21,7 @@
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="#">Home</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Dropdown
-            </a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
-            </ul>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-          </li>
+
         </ul>
         <form class="d-flex" role="search" action="cari.php" method="post" target="wadah">
           <input class="form-control me-2" type="search" placeholder="cari" aria-label="Search" name="cari" />
@@ -58,7 +40,7 @@
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
         <a href="input.php" class="list-group-item" target="wadah">LAPORAN</a>
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
-        <a href="index.php" class="list-group-item" target="wadah">log out</a>
+        <button onclick="handleLogOut('../login.php');" class="list-group-item">log out</button>
       </ul>
     </div>
 
@@ -67,6 +49,7 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+  <script src="../assets/js/main.js"></script>
 </body>
 
 </html>

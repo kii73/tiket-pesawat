@@ -133,7 +133,7 @@ function initFormValidations() {
     }
 }
 
-function handleLogOut() {
+function handleLogOut(url="") {
     document.cookie = "remember_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.replace("login.php");
+    window.location.replace(url ? url : "login.php");
 }

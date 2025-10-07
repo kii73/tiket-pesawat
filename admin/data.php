@@ -4,38 +4,35 @@
   <table class="table">
     <thead>
       <tr>
-        <th scope="col">kode_penerbagan</th>
-        <th scope="col">maskapai</th>
-        <th scope="col">bandara_asal</th>
-        <th scope="col">bandara_tujuan</th>
-        <th scope="col">tangga_berangkat</th>
-        <th scope="col">jam_berangkat</th>
-        <th scope="col">tanggal_tiba</th>
-        <th scope="col">jam_tiba</th>
-        <th scope="col">durasi</th>
-        <th scope="col">harga_tiket</th>
+        <th scope="col">no</th>
+        <th scope="col">nama</th>
+        <th scope="col">no_penerbangan</th>
+        <th scope="col">kelas</th>
+        <th scope="col">asal</th>
+        <th scope="col">tujuan</th>
+        <th scope="col">waktu_berangkat</th>
+        <th scope="col">harga</th>
+        <th scope="col">waktu_tiba</th>
         <th>Aksi</th>
       </tr>
     </thead>
 
     <tbody>
       <?php include "../koneksi.php";
-      $tampil = $mysql->query("select*from penerbagan");
+      $tampil = $mysql->query("SELECT * FROM pesawat");
       foreach ($tampil as $data) {
         @$no++;
       ?>
         <tr>
           <th scope="row"><?= $no; ?></th>
-          <td><?= $data['kode_penerbagan'] ?></td>
-          <td><?= $data['maskapai'] ?></td>
-          <td><?= $data['bandara_asal'] ?></td>
-          <td><?= $data['bandara_tujuan'] ?></td>
-          <td><?= $data['tanggal_berangkat'] ?></td>
-          <td><?= $data['jam_berangkat'] ?></td>
-          <td><?= $data['tanggal_tiba'] ?></td>
-          <td><?= $data['jam_tiba'] ?></td>
-          <td><?= $data['durasi'] ?></td>
-          <td><?= $data['harga_tiket'] ?></td>
+          <td><?= $data['nama'] ?></td>
+          <td><?= $data['no_penerbangan'] ?></td>
+          <td><?= $data['kelas'] ?></td>
+          <td><?= $data['asal'] ?></td>
+          <td><?= $data['tujuan'] ?></td>
+          <td><?= $data['waktu_berangkat'] ?></td>
+          <td><?= $data['harga'] ?></td>
+          <td><?= $data['waktu_tiba'] ?></td>
 
           <td>
             <a href="delete.php?id=<?= $data['id']; ?>" onclick="return confirm('apakah anda yakin?');">
