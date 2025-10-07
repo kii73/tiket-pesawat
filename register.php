@@ -14,9 +14,7 @@ if (isset($_POST['register'])) {
     $confirm_password = $_POST['confirm-password'];
 
     if ($password === $confirm_password) {
-        $password_hash = password_hash($password, PASSWORD_BCRYPT);
-
-        $query = "INSERT INTO `users` (`nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`) VALUES ('$fullname','$username','$email','$phone','$gender','$birthdate','$address','$password_hash')";
+        $query = "INSERT INTO `users` (`nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`) VALUES ('$fullname','$username','$email','$phone','$gender','$birthdate','$address',md5('$password'))";
         $result = $mysql->query($query);
         if ($result) {
 ?>

@@ -1,7 +1,30 @@
 <?php
 
 include "./proteksi.php";
+include "./koneksi.php";
 
+$query = "SELECT * FROM pesawat";
+$result = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
+
+if (isset($_COOKIE["remember_token"])) {
+    $user = [
+        "user" => [],
+        "kode" => [[]]
+    ];
+    $remember_token = $_COOKIE["remember_token"];
+
+    $user_1 = $mysql->query("SELECT * FROM users WHERE remember_token='$remember_token'")->fetch_assoc();
+    $user_id = $user_1["id"];
+    $user["user"] = $user_1;
+    $bookings = $mysql->query("SELECT * FROM kode WHERE id_user=$user_id");
+    $i = 0;
+    while ($row = $bookings->fetch_assoc()) {
+        foreach ($row as $key => $value) {
+            $user["kode"][$i][$key] = $value;
+        }
+        $i++;
+    }
+}
 ?>
 
 
@@ -93,120 +116,89 @@ include "./proteksi.php";
         </div>
     </section>
 
-    <!-- Promo Section -->
-    <section id="promo" class="container py-5 mt-4">
-        <div class="text-center mb-5 animate__animated animate__fadeIn">
-            <h2 class="fw-bold" style="letter-spacing:1px;">Promo <span class="text-primary-gradient">Terbaru</span></h2>
-            <p class="text-muted">Penawaran spesial untuk perjalanan Anda</p>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-4 col-sm-6" data-animate="animate-fade-in" data-delay="delay-100">
-                <div class="promo-card card h-100">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Promo Bali">
-                        <div class="position-absolute top-0 start-0 bg-warning text-dark p-2 m-2 rounded-pill">
-                            <i class="bi bi-star-fill me-1"></i> Populer
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">Diskon 20% ke Bali</h5>
-                        <p class="card-text">Nikmati liburan ke Bali dengan harga spesial. Promo terbatas!</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fw-bold text-primary">Rp 800.000</span>
-                            <a href="./pencarian.php" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
+    <section class="container">
+        <div class="search-results">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-5 mt-5 text-center" style="width: 100%; font-size: 40px;"><span class="text-primary-gradient" id="promo">Promo</span></h3>
             </div>
-            <div class="col-md-4 col-sm-6" data-animate="animate-fade-in" data-delay="delay-200">
-                <div class="promo-card card h-100">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1555899434-94d1368aa7af?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Promo Surabaya">
-                        <div class="position-absolute top-0 start-0 bg-info text-dark p-2 m-2 rounded-pill">
-                            <i class="bi bi-lightning-fill me-1"></i> Cepat Habis
+            <div class="row g-4" data-animate="animate-fade-in">
+                <?php
+                foreach ($result as $pesawat) {
+                    $rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
+                ?>
+
+                    <div class="col-md-6" data-animate="animate-fade-in">
+                        <div class="result-card card h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="airline-logo me-2 rounded-circle bg-light p-2">
+                                            <i class="bi bi-airplane text-primary" style="font-size: 1.5rem;"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="card-title mb-0"><?= $pesawat["nama"] ?></h5>
+                                            <span class="badge bg-light text-dark"><?= $pesawat["no_penerbangan"] ?></span>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary"><?= $pesawat["kelas"] ?></span>
+                                </div>
+                                <div class="flight-route d-flex justify-content-between align-items-center mb-4 position-relative">
+                                    <div class="text-center">
+                                        <h6 class="fw-bold mb-0"><?= $pesawat["asal"] ?></h6>
+                                        <p class="mb-0 text-primary"><?= $pesawat["waktu_berangkat"] ?></p>
+                                    </div>
+                                    <div class="flight-line position-relative flex-grow-1 mx-3">
+                                        <div class="flight-icon">
+                                            <i class="bi bi-airplane-fill text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <h6 class="fw-bold mb-0"><?= $pesawat["tujuan"] ?></h6>
+                                        <p class="mb-0 text-primary"><?= $pesawat["waktu_tiba"] ?></p>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                    <div>
+                                        <p class="mb-0">Harga per orang</p>
+                                        <p class="card-text fw-bold text-primary mb-0 fs-5"><?= $rupiah ?></p>
+                                    </div>
+                                    <?php
+                                    if (isset($_COOKIE["remember_token"])) {
+                                        $isBooking = array_filter($user["kode"], function ($item) use ($pesawat) {
+                                            if (!isset($item["id_pesawat"])) return false;
+                                            return $item["id_pesawat"] == $pesawat["id"];
+                                        });
+
+                                        if (empty($isBooking)) {
+                                    ?>
+                                            <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+                                                <i class="bi bi-check-circle me-1"></i>Pilih Tiket
+                                            </a>
+                                        <?php
+                                        } else {
+                                        ?>
+                                            <button class="btn btn-primary" disabled>
+                                                <i class="bi bi-x-circle me-1"></i>Sudah di pesan
+                                            </button>
+                                        <?php
+                                        }
+                                    } else {
+                                        ?>
+                                        <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+                                            <i class="bi bi-check-circle me-1"></i>Pilih Tiket
+                                        </a>
+                                    <?php
+                                    }
+                                    ?>
+
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">Tiket Murah ke Surabaya</h5>
-                        <p class="card-text">Dapatkan tiket pesawat ke Surabaya mulai dari Rp 500.000!</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fw-bold text-primary">Rp 500.000</span>
-                            <a href="./pencarian.php" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6" data-animate="animate-fade-in" data-delay="delay-300">
-                <div class="promo-card card h-100">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Promo Medan">
-                        <div class="position-absolute top-0 start-0 bg-success text-dark p-2 m-2 rounded-pill">
-                            <i class="bi bi-percent me-1"></i> Hemat 30%
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">Trip Hemat ke Medan</h5>
-                        <p class="card-text">Promo tiket pesawat ke Medan, hemat hingga 30%!</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fw-bold text-primary">Rp 650.000</span>
-                            <a href="./pencarian.php" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6" data-animate="animate-fade-in" data-delay="delay-400">
-                <div class="promo-card card h-100">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Promo Yogyakarta">
-                        <div class="position-absolute top-0 start-0 bg-primary text-white p-2 m-2 rounded-pill">
-                            <i class="bi bi-calendar-event me-1"></i> Weekend
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">Weekend di Yogyakarta</h5>
-                        <p class="card-text">Paket lengkap weekend di Yogyakarta dengan harga terjangkau!</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fw-bold text-primary">Rp 750.000</span>
-                            <a href="./pencarian.php" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6" data-animate="animate-fade-in" data-delay="delay-500">
-                <div class="promo-card card h-100">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Promo Lombok">
-                        <div class="position-absolute top-0 start-0 bg-danger text-white p-2 m-2 rounded-pill">
-                            <i class="bi bi-fire me-1"></i> Hot Deal
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">Eksplor Lombok</h5>
-                        <p class="card-text">Jelajahi keindahan Lombok dengan penawaran khusus minggu ini!</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fw-bold text-primary">Rp 900.000</span>
-                            <a href="./pencarian.php" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6" data-animate="animate-fade-in" data-delay="delay-500">
-                <div class="promo-card card h-100">
-                    <div class="position-relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1555400038-63f5ba517a47?auto=format&fit=crop&w=400&q=80" class="card-img-top" alt="Promo Jakarta">
-                        <div class="position-absolute top-0 start-0 bg-secondary text-white p-2 m-2 rounded-pill">
-                            <i class="bi bi-briefcase-fill me-1"></i> Bisnis
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">Business Trip Jakarta</h5>
-                        <p class="card-text">Paket perjalanan bisnis ke Jakarta dengan fasilitas lengkap!</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="fw-bold text-primary">Rp 1.200.000</span>
-                            <a href="./pencarian.php" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
+
+                <?php
+                }
+                ?>
             </div>
         </div>
     </section>

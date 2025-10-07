@@ -7,32 +7,28 @@ if (isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $query = "SELECT * FROM users WHERE username='$username' OR email='$username'";
+    $query = "SELECT * FROM users WHERE (username='$username' OR email='$username') AND password=md5('$password')";
     $result = $mysql->query($query);
     if ($result->num_rows > 0) {
         $first_data = $result->fetch_assoc();
-        $password_hash = $first_data["password"];
         $id = $first_data["id"];
-        $isVerify = password_verify($password, $password_hash);
         $remember_token = generateUUIDv4();
 
         $mysql->query("UPDATE users SET remember_token='$remember_token' WHERE id=$id");
         setcookie("remember_token", $remember_token, 0, "/");
 
-        if ($isVerify) {
-            if ($first_data["role"] == "admin") {
+        if ($first_data["role"] == "admin") {
 ?>
-                <script>
-                    window.location.href = "admin";
-                </script>
-            <?php
-            } else {
-            ?>
-                <script>
-                    window.location.href = "index.php";
-                </script>
+            <script>
+                window.location.href = "admin";
+            </script>
+        <?php
+        } else {
+        ?>
+            <script>
+                window.location.href = "index.php";
+            </script>
 <?php
-            }
         }
     }
 }
@@ -103,10 +99,7 @@ if (isset($_POST['login'])) {
                         if ($result->num_rows == 0) {
                             echo '<div class="alert alert-danger animate__animated animate__shakeX" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pengguna tidak ditemukan. Silakan periksa username/email Anda.</div>';
                         } else {
-                            $isVerify = password_verify($password, $password_hash);
-                            if (!$isVerify) {
-                                echo '<div class="alert alert-danger animate__animated animate__shakeX" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Password salah.</div>';
-                            }
+                            echo '<div class="alert alert-danger animate__animated animate__shakeX" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Password salah.</div>';
                         }
                     }
 
