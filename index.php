@@ -3,7 +3,7 @@
 include "./proteksi.php";
 include "./koneksi.php";
 
-$query = "SELECT * FROM pesawat";
+$query = "SELECT * FROM pesawat LIMIT 4";
 $result = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
 
 if (isset($_COOKIE["remember_token"])) {
@@ -164,30 +164,23 @@ if (isset($_COOKIE["remember_token"])) {
                                     </div>
                                     <?php
                                     if (isset($_COOKIE["remember_token"])) {
-                                        $isBooking = array_filter($user["kode"], function ($item) use ($pesawat) {
+                                        $isBooking = array_values(array_filter($user["kode"], function ($item) use ($pesawat) {
                                             if (!isset($item["id_pesawat"])) return false;
                                             return $item["id_pesawat"] == $pesawat["id"];
-                                        });
-
-                                        if (empty($isBooking)) {
+                                        }));
+                                        if (!empty($isBooking) && !empty($isBooking[0])) {
                                     ?>
-                                            <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
-                                                <i class="bi bi-check-circle me-1"></i>Pilih Tiket
-                                            </a>
+                                            <button class="btn btn-primary" disabled>
+                                                <i class="bi bi-x-circle me-1"></i><?= $isBooking[0]["status"] ?>
+                                            </button>
                                         <?php
                                         } else {
                                         ?>
-                                            <button class="btn btn-primary" disabled>
-                                                <i class="bi bi-x-circle me-1"></i>Sudah di pesan
-                                            </button>
-                                        <?php
-                                        }
-                                    } else {
-                                        ?>
-                                        <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
-                                            <i class="bi bi-check-circle me-1"></i>Pilih Tiket
-                                        </a>
+                                            <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+                                                <i class="bi bi-check-circle me-1"></i>Pilih Tiket
+                                            </a>
                                     <?php
+                                        }
                                     }
                                     ?>
 

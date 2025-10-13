@@ -3,7 +3,7 @@
 include "./koneksi.php";
 
 $query = "SELECT * FROM pesawat";
-$result = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
+$result_semua_tiket = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
 
 if (isset($_COOKIE["remember_token"])) {
 	$user = [
@@ -23,6 +23,15 @@ if (isset($_COOKIE["remember_token"])) {
 		}
 		$i++;
 	}
+}
+
+$result_pencarian = null;
+
+if (isset($_GET["dari"]) && isset($_GET["ke"])) {
+	$dari = $_GET["dari"];
+	$ke = $_GET["ke"];
+
+	$result_pencarian = $mysql->query("SELECT * FROM pesawat WHERE asal LIKE '%$dari%' AND tujuan LIKE '%$ke%'")->fetch_all(MYSQLI_ASSOC);
 }
 
 
@@ -78,7 +87,7 @@ if (isset($_COOKIE["remember_token"])) {
 	<section class="container py-5 mt-5">
 		<div class="search-form p-4 mb-5 animate__animated animate__fadeIn">
 			<h2 class="mb-4 text-center fw-bold">Cari Tiket <span class="text-primary-gradient">Pesawat</span></h2>
-			<form action="pencarian.php" method="GET" class="needs-validation" novalidate>
+			<form method="GET" class="needs-validation" novalidate>
 				<div class="row g-3">
 					<div class="col-md-3">
 						<label for="dari" class="form-label"><i class="bi bi-geo-alt-fill me-1 text-primary"></i>Dari</label>
@@ -123,11 +132,122 @@ if (isset($_COOKIE["remember_token"])) {
 			</form>
 		</div>
 
-		<!-- Hasil Pencarian -->
-		<section class="container">
+		<?php
+		if (isset($result_pencarian) && isset($_GET["dari"]) && !empty($result_pencarian)) {
+		?>
+			<!-- Hasil pencarian -->
+			<section class="container">
+				<div class="search-results">
+					<div class="d-flex justify-content-between align-items-center mb-4">
+						<h3 class="fw-bold mb-0">Hasil <span class="text-primary-gradient">Pencarian</span></h3>
+						<div class="search-summary bg-light rounded-pill px-3 py-2">
+							<i class="bi bi-info-circle me-1 text-primary"></i>
+							<span>Penerbangan Tersedia</span>
+						</div>
+					</div>
+					<div class="row g-4" data-animate="animate-fade-in">
+						<?php
+						foreach ($result_pencarian as $pesawat) {
+							$rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
+						?>
+
+							<div class="col-md-6" data-animate="animate-fade-in">
+								<div class="result-card card h-100">
+									<div class="card-body p-4">
+										<div class="d-flex justify-content-between align-items-center mb-3">
+											<div class="d-flex align-items-center">
+												<div class="airline-logo me-2 rounded-circle bg-light p-2">
+													<i class="bi bi-airplane text-primary" style="font-size: 1.5rem;"></i>
+												</div>
+												<div>
+													<h5 class="card-title mb-0"><?= $pesawat["nama"] ?></h5>
+													<span class="badge bg-light text-dark"><?= $pesawat["no_penerbangan"] ?></span>
+												</div>
+											</div>
+											<span class="badge bg-primary bg-opacity-10 text-primary"><?= $pesawat["kelas"] ?></span>
+										</div>
+										<div class="flight-route d-flex justify-content-between align-items-center mb-4 position-relative">
+											<div class="text-center">
+												<h6 class="fw-bold mb-0"><?= $pesawat["asal"] ?></h6>
+												<p class="mb-0 text-primary"><?= $pesawat["waktu_berangkat"] ?></p>
+											</div>
+											<div class="flight-line position-relative flex-grow-1 mx-3">
+												<div class="flight-icon">
+													<i class="bi bi-airplane-fill text-primary"></i>
+												</div>
+											</div>
+											<div class="text-center">
+												<h6 class="fw-bold mb-0"><?= $pesawat["tujuan"] ?></h6>
+												<p class="mb-0 text-primary"><?= $pesawat["waktu_tiba"] ?></p>
+											</div>
+										</div>
+										<div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+											<div>
+												<p class="mb-0">Harga per orang</p>
+												<p class="card-text fw-bold text-primary mb-0 fs-5"><?= $rupiah ?></p>
+											</div>
+											<?php
+											if (isset($_COOKIE["remember_token"])) {
+												$isBooking = array_filter($user["kode"], function ($item) use ($pesawat) {
+													if (!isset($item["id_pesawat"])) return false;
+													return $item["id_pesawat"] == $pesawat["id"];
+												});
+
+												if (empty($isBooking)) {
+											?>
+													<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+														<i class="bi bi-check-circle me-1"></i>Pilih Tiket
+													</a>
+												<?php
+												} else {
+												?>
+													<button class="btn btn-primary" disabled>
+														<i class="bi bi-x-circle me-1"></i>Sudah di pesan
+													</button>
+												<?php
+												}
+											} else {
+												?>
+												<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+													<i class="bi bi-check-circle me-1"></i>Pilih Tiket
+												</a>
+											<?php
+											}
+											?>
+
+										</div>
+									</div>
+								</div>
+							</div>
+
+						<?php
+						}
+						?>
+					</div>
+				</div>
+			</section>
+
+		<?php
+		} else if (empty($result_pencarian) && isset($_GET["dari"])) {
+		?>
+			<div class="d-flex justify-content-between align-items-center mb-4">
+				<h3 class="fw-bold mb-0">Hasil <span class="text-primary-gradient">Pencarian</span></h3>
+				<div class="search-summary bg-light rounded-pill px-3 py-2">
+					<i class="bi bi-info-circle me-1 text-primary"></i>
+					<span>Penerbangan kosong</span>
+				</div>
+			</div>
+			<h4 class="fw-bold mb-0">Tiket tidak ada</span></h4>
+		<?php
+		}
+		?>
+
+
+		<!-- Semua Tiket -->
+		<section class="container" style="<?php if (isset($result_pencarian)) echo "margin-top: 10rem;" ?>">
 			<div class="search-results">
 				<div class="d-flex justify-content-between align-items-center mb-4">
-					<h3 class="fw-bold mb-0">Hasil <span class="text-primary-gradient">Pencarian</span></h3>
+					<h3 class="fw-bold mb-0">Semua <span class="text-primary-gradient">Tiket</span></h3>
 					<div class="search-summary bg-light rounded-pill px-3 py-2">
 						<i class="bi bi-info-circle me-1 text-primary"></i>
 						<span>Penerbangan Tersedia</span>
@@ -135,7 +255,7 @@ if (isset($_COOKIE["remember_token"])) {
 				</div>
 				<div class="row g-4" data-animate="animate-fade-in">
 					<?php
-					foreach ($result as $pesawat) {
+					foreach ($result_semua_tiket as $pesawat) {
 						$rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
 					?>
 
@@ -176,30 +296,23 @@ if (isset($_COOKIE["remember_token"])) {
 										</div>
 										<?php
 										if (isset($_COOKIE["remember_token"])) {
-											$isBooking = array_filter($user["kode"], function ($item) use ($pesawat) {
+											$isBooking = array_values(array_filter($user["kode"], function ($item) use ($pesawat) {
 												if (!isset($item["id_pesawat"])) return false;
 												return $item["id_pesawat"] == $pesawat["id"];
-											});
-
-											if (empty($isBooking)) {
+											}));
+											if (!empty($isBooking) && !empty($isBooking[0])) {
 										?>
-												<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
-													<i class="bi bi-check-circle me-1"></i>Pilih Tiket
-												</a>
+												<button class="btn btn-primary" disabled>
+													<i class="bi bi-x-circle me-1"></i><?= $isBooking[0]["status"] ?>
+												</button>
 											<?php
 											} else {
 											?>
-												<button class="btn btn-primary" disabled>
-													<i class="bi bi-x-circle me-1"></i>Sudah di pesan
-												</button>
-											<?php
-											}
-										} else {
-											?>
-											<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
-												<i class="bi bi-check-circle me-1"></i>Pilih Tiket
-											</a>
+												<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+													<i class="bi bi-check-circle me-1"></i>Pilih Tiket
+												</a>
 										<?php
+											}
 										}
 										?>
 

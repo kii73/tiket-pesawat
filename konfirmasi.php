@@ -263,14 +263,7 @@ if (isset($_GET["pesawat"])) {
                                         <div class="invalid-feedback">Masukkan nama lengkap</div>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="nik" class="form-label">NIK</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
-                                        <input type="text" class="form-control" id="nik" name="nik" placeholder="Masukkan NIK" required>
-                                        <div class="invalid-feedback">Masukkan NIK</div>
-                                    </div>
-                                </div>
+                                
                                 <div class="mb-3">
                                     <label for="gender" class="form-label">Jenis Kelamin</label>
                                     <div class="input-group">
@@ -283,14 +276,7 @@ if (isset($_GET["pesawat"])) {
                                         <div class="invalid-feedback">Pilih jenis kelamin</div>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="birthdate" class="form-label">Tanggal Lahir</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="bi bi-calendar-date"></i></span>
-                                        <input type="date" class="form-control" id="birthdate" name="birthdate" required>
-                                        <div class="invalid-feedback">Masukkan tanggal lahir</div>
-                                    </div>
-                                </div>
+                               
                                 <div class="mb-3">
                                     <label for="phone" class="form-label">Nomor HP</label>
                                     <div class="input-group">
@@ -299,14 +285,7 @@ if (isset($_GET["pesawat"])) {
                                         <div class="invalid-feedback">Masukkan nomor HP</div>
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="alamat" class="form-label">Alamat</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="bi bi-geo"></i></span>
-                                        <textarea class="form-control" id="alamat" name="alamat" rows="2" placeholder="Masukkan alamat lengkap" required></textarea>
-                                        <div class="invalid-feedback">Masukkan alamat</div>
-                                    </div>
-                                </div>
+                               
                             </div>
                         </div>
 

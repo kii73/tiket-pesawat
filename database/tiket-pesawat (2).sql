@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 07, 2025 at 07:53 AM
--- Server version: 8.0.30
--- PHP Version: 8.1.10
+-- Waktu pembuatan: 13 Okt 2025 pada 04.17
+-- Versi server: 8.0.30
+-- Versi PHP: 8.1.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,20 +24,30 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `kode`
+-- Struktur dari tabel `kode`
 --
 
 CREATE TABLE `kode` (
   `id` int NOT NULL,
   `id_pesawat` int NOT NULL,
   `id_user` int NOT NULL,
-  `kode` varchar(50) NOT NULL
+  `kode` varchar(50) NOT NULL,
+  `status` enum('disetujui','menunggu') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data untuk tabel `kode`
+--
+
+INSERT INTO `kode` (`id`, `id_pesawat`, `id_user`, `kode`, `status`) VALUES
+(10, 3, 8, 'PEVPVC', 'disetujui'),
+(11, 4, 8, 'AFHVCF', 'disetujui'),
+(12, 8, 8, 'RQSFFU', 'disetujui');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pesawat`
+-- Struktur dari tabel `pesawat`
 --
 
 CREATE TABLE `pesawat` (
@@ -56,16 +66,18 @@ CREATE TABLE `pesawat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `pesawat`
+-- Dumping data untuk tabel `pesawat`
 --
 
 INSERT INTO `pesawat` (`id`, `slug`, `nama`, `no_penerbangan`, `kelas`, `asal`, `tujuan`, `waktu_berangkat`, `harga`, `created_at`, `updated_at`, `waktu_tiba`) VALUES
-(3, 'boeing-0-bn-342', 'Boeing 447', 'BN-342', 'Ekonomi', 'Bandung', 'Jakarta', '10:19:33', '120000.00', '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33'),
-(4, 'garuda-indonesia-ga-001', 'Garuda Indonesia', 'GA-001', 'Ekonomi', 'Bandung', 'sigapura', '10:19:33', '1200000.00', '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33'),
-(7, 'air-indonesia-345542323', 'air indonesia', '345542323', 'ekonomi', 'bandung', 'bali', '14:25:00', '2000000.00', '2025-10-07 07:24:52', '2025-10-07 07:24:52', '18:30:00');
+(3, 'boeing-0-bn-342', 'Boeing 447', 'BN-342', 'Ekonomi', 'malaysia', 'Jakarta', '10:19:33', 120000.00, '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33'),
+(4, 'garuda-indonesia-ga-001', 'Garuda Indonesia', 'GA-001', 'Ekonomi', 'Bandung', 'singapura', '10:19:33', 1200000.00, '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33'),
+(7, 'air-indonesia-345542323', 'air indonesia', 'GS-367', 'Ekonomi', 'bandung', 'bali', '14:25:00', 2000000.00, '2025-10-07 07:24:52', '2025-10-07 07:24:52', '18:30:00'),
+(8, 'garuda-indonesia-23846786', 'garuda indonesia', 'GA-2267', 'Business', 'jakarta', 'singapura', '10:22:00', 200000000.00, '2025-10-13 01:22:51', '2025-10-13 01:22:51', '05:22:00'),
+(9, 'sriwijaya-air-sa-376', 'Sriwijaya air', 'SA-376', 'Business', 'tanggerang', 'Padang', '10:00:00', 200000000.00, '2025-10-13 02:56:50', '2025-10-13 02:56:50', '03:00:00');
 
 --
--- Triggers `pesawat`
+-- Trigger `pesawat`
 --
 DELIMITER $$
 CREATE TRIGGER `auto_slug` BEFORE INSERT ON `pesawat` FOR EACH ROW BEGIN
@@ -77,7 +89,7 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Struktur dari tabel `users`
 --
 
 CREATE TABLE `users` (
@@ -95,19 +107,19 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `users`
+-- Dumping data untuk tabel `users`
 --
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`, `role`, `remember_token`) VALUES
-(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', '112c5469-a5ce-48e6-92b3-f3251835f054'),
-(7, 'Ilham', 'ilham', 'ilham@gmail.com', '346245635467', 'Laki-laki', '2025-10-23', 'sdfasvf', 'ee11cbb19052e40b07aac0ca060c23ee', 'user', 'cb7ff36b-de9f-4a47-aaf6-5775787ab9e5');
+(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', '9df93c70-477a-44d2-b0f3-775374a694b1'),
+(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', '9794b035-b570-475a-92a2-270fa3d21ab7');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `kode`
+-- Indeks untuk tabel `kode`
 --
 ALTER TABLE `kode`
   ADD PRIMARY KEY (`id`),
@@ -116,45 +128,45 @@ ALTER TABLE `kode`
   ADD KEY `id_user` (`id_user`);
 
 --
--- Indexes for table `pesawat`
+-- Indeks untuk tabel `pesawat`
 --
 ALTER TABLE `pesawat`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `users`
+-- Indeks untuk tabel `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT untuk tabel yang dibuang
 --
 
 --
--- AUTO_INCREMENT for table `kode`
+-- AUTO_INCREMENT untuk tabel `kode`
 --
 ALTER TABLE `kode`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
--- AUTO_INCREMENT for table `pesawat`
+-- AUTO_INCREMENT untuk tabel `pesawat`
 --
 ALTER TABLE `pesawat`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- Constraints for dumped tables
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
 
 --
--- Constraints for table `kode`
+-- Ketidakleluasaan untuk tabel `kode`
 --
 ALTER TABLE `kode`
   ADD CONSTRAINT `id_hotel` FOREIGN KEY (`id_pesawat`) REFERENCES `pesawat` (`id`),

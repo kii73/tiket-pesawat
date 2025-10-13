@@ -45,16 +45,24 @@ $isBooking = array_filter($user["kode"], function ($item) use ($id_pesawat) {
     return $item["id_pesawat"] == $id_pesawat;
 });
 
+$status_booking = 'Menunggu persetujuan'; // default
+
 if (!empty($isBooking)) {
-    $booking_code = $mysql->query("SELECT * FROM users u LEFT JOIN kode k ON k.id_user = u.id LEFT JOIN pesawat p ON p.id = $id_pesawat WHERE remember_token='$remember_token'")->fetch_assoc()["kode"];
+    $result = $mysql->query("SELECT * FROM users u 
+        LEFT JOIN kode k ON k.id_user = u.id 
+        LEFT JOIN pesawat p ON p.id = $id_pesawat 
+        WHERE remember_token='$remember_token'");
+    
+    $row = $result->fetch_assoc();
+    $booking_code = $row["kode"];
+    $status_booking = $row["status"];
 } else {
     $booking_code = generateBookingCode();
-    $mysql->query("INSERT INTO `kode`(`id_pesawat`, `id_user`, `kode`) VALUES ($id_pesawat, $user_id, '$booking_code')");
+    $mysql->query("INSERT INTO `kode` (`id_pesawat`, `id_user`, `kode`, `status`) VALUES ($id_pesawat, $user_id, '$booking_code', 'menunggu')");
+    $status_booking = 'Menunggu persetujuan';
 }
 
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="id">
@@ -134,7 +142,12 @@ if (!empty($isBooking)) {
                     <h2 class="text-center mb-3" style="color:#1a73e8;font-weight:700;">Pesanan Berhasil!</h2>
                     <p class="text-center mb-2">Terima kasih, pesanan tiket pesawat Anda telah dikonfirmasi.</p>
                     <div class="kode-unik" id="kodeUnik"><?= $booking_code ?></div>
-                    <p class="text-center text-muted mb-4">Simpan kode unik ini untuk proses check-in atau konfirmasi pembayaran.</p>
+                    <p class="text-center text-muted mb-2">Simpan kode unik ini untuk proses check-in atau konfirmasi pembayaran.</p>
+                    <div class="text-center mb-4">
+                        <span class="badge bg-warning text-dark">
+                            Status: <?= ucfirst($status_booking) ?>
+                        </span>
+                    </div>
                     <div class="d-flex justify-content-around">
                         <a href="index.php" class="btn btn-home px-4">Beranda</a>
                         <button onclick="handleCopy(this)" class="btn btn-primary px-4">Salin</button>
@@ -149,7 +162,6 @@ if (!empty($isBooking)) {
     <script>
         function handleCopy(e) {
             const code = '<?= $booking_code ?>';
-
             alert("Kode disalin");
 
             if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
@@ -157,18 +169,15 @@ if (!empty($isBooking)) {
             }
 
             const textarea = document.createElement('textarea');
-
             textarea.style.position = 'fixed';
             textarea.style.top = '-9999px';
             textarea.style.left = '-9999px';
             textarea.setAttribute('readonly', '');
-            textarea.value = text;
+            textarea.value = code;
             document.body.appendChild(textarea);
-
             textarea.select();
             textarea.setSelectionRange(0, textarea.value.length);
-
-            const successful = document.execCommand('copy');
+            document.execCommand('copy');
             document.body.removeChild(textarea);
         }
     </script>

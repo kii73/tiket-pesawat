@@ -38,8 +38,8 @@
         <li class="list-group-item bg-primary"><i class="bi bi-person-circle me-2 text-dengger"></i>MENU</li>
         <a href="data.php" class="list-group-item" target="wadah">DATA TIKET</a>
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
-        <a href="input.php" class="list-group-item" target="wadah">LAPORAN</a>
-        <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
+        <a href="pesanan.php" class="list-group-item" target="wadah">DATA PESANAN</a>
+
         <button onclick="handleLogOut('../login.php');" class="list-group-item">log out</button>
       </ul>
     </div>
