@@ -60,9 +60,7 @@ if (isset($_COOKIE["remember_token"])) {
                     <li class="nav-item animate__animated animate__fadeIn">
                         <a class="nav-link text-white" href="#promo"><i class="bi bi-tag me-1"></i>Promo</a>
                     </li>
-                    <li class="nav-item animate__animated animate__fadeIn">
-                        <a class="nav-link text-white" href="#"><i class="bi bi-envelope me-1"></i>Kontak</a>
-                    </li>
+                    
                     <li class="nav-item animate__animated animate__fadeIn">
                         <?php
 
