@@ -1,7 +1,9 @@
 <?php include "boot.php"; ?>
-
-<table class="table">
-  <table class="table">
+<div class="container-fluid mt-3">
+    <h3 class="mb-4 text-primary">Data Pesawat</h3>
+    
+<table class="table table-striped table-bordered mt-4">
+  
     <thead>
       <tr>
         <th scope="col">no</th>
@@ -45,3 +47,4 @@
       <?php } ?>
     </tbody>
   </table>
+  </div>

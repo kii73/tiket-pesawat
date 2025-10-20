@@ -1,3 +1,17 @@
+<?php
+session_start();
+
+include "../koneksi.php";
+
+if (!isset(($_SESSION['username'])) || !isset($_SESSION['role']) && $_SESSION["role"] != "admin") {
+  header("Location: ../login.php");
+  exit;
+}
+
+?>
+
+
+
 <!doctype html>
 <html lang="en">
 
@@ -39,6 +53,7 @@
         <a href="data.php" class="list-group-item" target="wadah">DATA TIKET</a>
         <a href="input.php" class="list-group-item" target="wadah">INPUT DATA TIKET</a>
         <a href="pesanan.php" class="list-group-item" target="wadah">DATA PESANAN</a>
+        <a href="laporan.php" class="list-group-item" target="wadah">LAPORAN</a>
 
         <button onclick="handleLogOut('../login.php');" class="list-group-item">log out</button>
       </ul>

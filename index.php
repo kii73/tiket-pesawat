@@ -60,7 +60,10 @@ if (isset($_COOKIE["remember_token"])) {
                     <li class="nav-item animate__animated animate__fadeIn">
                         <a class="nav-link text-white" href="#promo"><i class="bi bi-tag me-1"></i>Promo</a>
                     </li>
-                    
+                    <li class="nav-item animate__animated animate__fadeIn">
+                      <a class="nav-link text-white active" href="riwayat.php"><i class="bi bi-clock-history me-1"></i>Riwayat</a>
+                    </li>
+
                     <li class="nav-item animate__animated animate__fadeIn">
                         <?php
 
@@ -90,7 +93,7 @@ if (isset($_COOKIE["remember_token"])) {
                         </li>
                         <li class="mb-3 d-flex align-items-center">
                             <span class="badge bg-info text-dark me-2 p-2"><i class="bi bi-shield-check"></i></span>
-                            <span>Mitra maskapai & kereta resmi</span>
+                            <span>Mitra maskapai </span>
                         </li>
                         <li class="mb-3 d-flex align-items-center">
                             <span class="badge bg-success text-dark me-2 p-2"><i class="bi bi-percent"></i></span>
@@ -177,8 +180,14 @@ if (isset($_COOKIE["remember_token"])) {
                                             <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
                                                 <i class="bi bi-check-circle me-1"></i>Pilih Tiket
                                             </a>
-                                    <?php
+                                        <?php
                                         }
+                                    } else {
+                                        ?>
+                                        <a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+                                            <i class="bi bi-check-circle me-1"></i>Pilih Tiket
+                                        </a>
+                                    <?php
                                     }
                                     ?>
 
@@ -278,8 +287,7 @@ if (isset($_COOKIE["remember_token"])) {
                     <h6 class="mb-3">Produk</h6>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="#" class="text-white">Tiket Pesawat</a></li>
-                        <li class="mb-2"><a href="#" class="text-white">Tiket Kereta</a></li>
-                        <li class="mb-2"><a href="#" class="text-white">Paket Wisata</a></li>
+
                     </ul>
                 </div>
                 <div class="col-md-4 text-md-start">

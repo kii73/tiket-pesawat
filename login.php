@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 include "./koneksi.php";
 include "./token.php";
@@ -16,7 +17,9 @@ if (isset($_POST['login'])) {
 
         $mysql->query("UPDATE users SET remember_token='$remember_token' WHERE id=$id");
         setcookie("remember_token", $remember_token, 0, "/");
-
+        $_SESSION["username"] = $first_data["username"];
+        $_SESSION["role"] = $first_data["role"];
+        
         if ($first_data["role"] == "admin") {
 ?>
             <script>
