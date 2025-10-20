@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 13 Okt 2025 pada 04.17
+-- Waktu pembuatan: 20 Okt 2025 pada 06.19
 -- Versi server: 8.0.30
 -- Versi PHP: 8.1.10
 
@@ -42,7 +42,10 @@ CREATE TABLE `kode` (
 INSERT INTO `kode` (`id`, `id_pesawat`, `id_user`, `kode`, `status`) VALUES
 (10, 3, 8, 'PEVPVC', 'disetujui'),
 (11, 4, 8, 'AFHVCF', 'disetujui'),
-(12, 8, 8, 'RQSFFU', 'disetujui');
+(12, 8, 8, 'RQSFFU', 'disetujui'),
+(13, 7, 9, 'BZUBMG', 'disetujui'),
+(14, 3, 9, 'UPUZKR', 'menunggu'),
+(15, 7, 8, 'PDQGUG', 'menunggu');
 
 -- --------------------------------------------------------
 
@@ -111,8 +114,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`, `role`, `remember_token`) VALUES
-(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', '9df93c70-477a-44d2-b0f3-775374a694b1'),
-(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', '9794b035-b570-475a-92a2-270fa3d21ab7');
+(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', '5bed7a95-8f1e-42e6-bd60-72e6c6716913'),
+(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', '5ee59e3d-5122-4ae4-b07a-7682d89ffdb7'),
+(9, 'Fahmi XD', 'fahmixd', 'fahmixd404@gmail.com', '085645645645', 'Laki-laki', '2025-10-20', 'gdfgdftrg', '202cb962ac59075b964b07152d234b70', 'user', 'e510e982-1609-44f7-812d-145a57422bd5');
 
 --
 -- Indexes for dumped tables
@@ -147,7 +151,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `kode`
 --
 ALTER TABLE `kode`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT untuk tabel `pesawat`
@@ -159,7 +163,7 @@ ALTER TABLE `pesawat`
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
