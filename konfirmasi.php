@@ -230,7 +230,7 @@ if (isset($_GET["pesawat"])) {
                                         <label for="kelas" class="form-label">Kelas Penerbangan</label>
                                         <div class="input-group">
                                             <span class="input-group-text bg-light"><i class="bi bi-star"></i></span>
-                                            <select class="form-select" disabled id="kelas" name="kelas" required>
+                                            <select class="form-select" id="kelas" name="kelas" required>
                                                 <option value="">Pilih kelas</option>
                                                 <option <?php echo $pilih["kelas"] == "Ekonomi" ? "selected" : "" ?> value="Ekonomi">Ekonomi</option>
                                                 <option <?php echo $pilih["kelas"] == "Bisnis" ? "selected" : "" ?> value="Bisnis">Bisnis</option>

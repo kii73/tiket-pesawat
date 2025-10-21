@@ -12,7 +12,25 @@ if (isset($_COOKIE["remember_token"])) {
 	];
 	$remember_token = $_COOKIE["remember_token"];
 
-	$user_1 = $mysql->query("SELECT * FROM users WHERE remember_token='$remember_token'")->fetch_assoc();
+	    $user_1 = $mysql->query("SELECT * FROM users WHERE remember_token='$remember_token'")->fetch_assoc();
+
+if ($user_1) {
+    $user_id = $user_1["id"];
+    $user["user"] = $user_1;
+    $bookings = $mysql->query("SELECT * FROM kode WHERE id_user=$user_id");
+    $i = 0;
+    while ($row = $bookings->fetch_assoc()) {
+        foreach ($row as $key => $value) {
+            $user["kode"][$i][$key] = $value;
+        }
+        $i++;
+    }
+} else {
+    setcookie("remember_token", "", time() - 3600, "/");
+    $user["user"] = [];
+    $user["kode"] = [[]];
+}
+
 	$user_id = $user_1["id"];
 	$user["user"] = $user_1;
 	$bookings = $mysql->query("SELECT * FROM kode WHERE id_user=$user_id");

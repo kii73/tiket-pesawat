@@ -12,7 +12,6 @@ $user_result = $mysql->query("SELECT role FROM users WHERE remember_token='$reme
 $user_data = $user_result->fetch_assoc();
 
 if (!$user_data || $user_data['role'] !== 'admin') {
-    
     header("Location: ../index.php"); 
     exit;
 }

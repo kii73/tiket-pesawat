@@ -16,10 +16,6 @@
           <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="no_penerbangan" required>
         </div>
         <div class="mb-3">
-          <label for="exampleInputEmail1" class="form-label"><i class="bi bi-laptop text-primary me-2"></i>kelas</label>
-          <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="kelas" required>
-        </div>
-        <div class="mb-3">
           <label for="exampleInputEmail1" class="form-label"><i class="bi bi-laptop text-primary me-2"></i>asal</label>
           <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" name="asal" required>
         </div>

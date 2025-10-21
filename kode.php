@@ -1,7 +1,15 @@
 <?php
 
 include "./koneksi.php";
+include "./proteksi.php";
+proteksi();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kelas']) && isset($_POST['slug'])) {
+    $kelas = $mysql->real_escape_string($_POST['kelas']);
+    $slug = $mysql->real_escape_string($_POST['slug']);
+
+    $update = $mysql->query("UPDATE pesawat SET kelas='$kelas' WHERE slug='$slug'");
+}
 function generateBookingCode(int $length = 6): string
 {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
