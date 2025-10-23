@@ -4,34 +4,41 @@ session_start();
 include "./koneksi.php";
 include "./token.php";
 
+if (isset($_GET["logout"])) {
+    session_unset();
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
 if (isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
+    // Query rentan SQL Injection - HARAP GANTI DENGAN PREPARED STATEMENT
     $query = "SELECT * FROM users WHERE (username='$username' OR email='$username') AND password=md5('$password')";
     $result = $mysql->query($query);
+
     if ($result->num_rows > 0) {
         $first_data = $result->fetch_assoc();
         $id = $first_data["id"];
         $remember_token = generateUUIDv4();
 
+        // Update token
         $mysql->query("UPDATE users SET remember_token='$remember_token' WHERE id=$id");
-        setcookie("remember_token", $remember_token, 0, "/");
+
+        // Set session
         $_SESSION["username"] = $first_data["username"];
-        $_SESSION["role"] = $first_data["role"];
-        
+        $_SESSION["role"] = $first_data["role"]; 
+        $_SESSION["user_id"] = $first_data["id"]; 
+
+        // Pengalihan halaman menggunakan PHP header (lebih baik tanpa JS)
         if ($first_data["role"] == "admin") {
-?>
-            <script>
-                window.location.href = "admin";
-            </script>
-        <?php
+            header("Location: admin");
+            exit();
         } else {
-        ?>
-            <script>
-                window.location.href = "index.php";
-            </script>
-<?php
+            header("Location: index.php");
+            exit();
         }
     }
 }
@@ -59,6 +66,7 @@ if (isset($_POST['login'])) {
             margin: 0;
         }
 
+        /* Hapus particles-js CSS karena fungsi JS-nya dihapus */
         #particles-js {
             position: absolute;
             top: 0;
@@ -99,15 +107,15 @@ if (isset($_POST['login'])) {
                     <?php
 
                     if (isset($_POST['login'])) {
+                        // Perlu melakukan query ulang jika menggunakan PHP header
+                        // Atau pastikan $result tetap tersedia di scope ini
                         if ($result->num_rows == 0) {
                             echo '<div class="alert alert-danger animate__animated animate__shakeX" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Pengguna tidak ditemukan. Silakan periksa username/email Anda.</div>';
-                        } else {
-                            echo '<div class="alert alert-danger animate__animated animate__shakeX" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Password salah.</div>';
                         }
                     }
 
                     ?>
-                    <form action="" method="POST" class="needs-validation" novalidate>
+                    <form action="" method="POST" class="">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username / Email</label>
                             <div class="input-group">
@@ -121,9 +129,6 @@ if (isset($_POST['login'])) {
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Masukkan kata sandi" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="bi bi-eye"></i>
-                                </button>
                                 <div class="invalid-feedback">Masukkan kata sandi</div>
                             </div>
                         </div>
@@ -139,108 +144,137 @@ if (isset($_POST['login'])) {
         </div>
     </div>
 
-    <!-- Particles Background -->
     <div id="particles-js" class="particles-container"></div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="./assets/js/main.js"></script>
     <script>
-        // Toggle password visibility
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const icon = this.querySelector('i');
-
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
-        });
-
-        // Form validation
-        (function() {
-            'use strict';
-            var forms = document.querySelectorAll('.needs-validation');
-            Array.prototype.slice.call(forms).forEach(function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        })();
-
-        // Initialize particles.js
         particlesJS('particles-js', {
+
             particles: {
+
                 number: {
+
                     value: 80,
+
                     density: {
+
                         enable: true,
+
                         value_area: 800
+
                     }
+
                 },
+
                 color: {
+
                     value: '#2563eb'
+
                 },
+
                 shape: {
+
                     type: 'circle'
+
                 },
+
                 opacity: {
+
                     value: 0.5,
+
                     random: false
+
                 },
+
                 size: {
+
                     value: 3,
+
                     random: true
+
                 },
+
                 line_linked: {
+
                     enable: true,
+
                     distance: 150,
+
                     color: '#2563eb',
+
                     opacity: 0.4,
+
                     width: 1
+
                 },
+
                 move: {
+
                     enable: true,
+
                     speed: 2,
+
                     direction: 'none',
+
                     random: false,
+
                     straight: false,
+
                     out_mode: 'out',
+
                     bounce: false
+
                 }
+
             },
+
             interactivity: {
+
                 detect_on: 'canvas',
+
                 events: {
+
                     onhover: {
+
                         enable: false,
+
                         mode: 'grab'
+
                     },
+
                     onclick: {
+
                         enable: false,
+
                         mode: 'push'
+
                     }
+
                 },
+
                 modes: {
+
                     grab: {
+
                         distance: 140,
+
                         line_linked: {
+
                             opacity: 1
+
                         }
+
                     }
+
                 }
+
             },
+
             retina_detect: true
+
         });
     </script>
+
 </body>
 
 </html>

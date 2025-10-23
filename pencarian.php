@@ -1,58 +1,83 @@
 <?php
+// Pastikan session_start() dijalankan hanya sekali
+if (session_status() === PHP_SESSION_NONE) {
+	session_start();
+}
 
 include "./koneksi.php";
 
-$query = "SELECT * FROM pesawat";
-$result_semua_tiket = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
-
-if (isset($_COOKIE["remember_token"])) {
-	$user = [
-		"user" => [],
-		"kode" => [[]]
-	];
-	$remember_token = $_COOKIE["remember_token"];
-
-	    $user_1 = $mysql->query("SELECT * FROM users WHERE remember_token='$remember_token'")->fetch_assoc();
-
-if ($user_1) {
-    $user_id = $user_1["id"];
-    $user["user"] = $user_1;
-    $bookings = $mysql->query("SELECT * FROM kode WHERE id_user=$user_id");
-    $i = 0;
-    while ($row = $bookings->fetch_assoc()) {
-        foreach ($row as $key => $value) {
-            $user["kode"][$i][$key] = $value;
-        }
-        $i++;
-    }
-} else {
-    setcookie("remember_token", "", time() - 3600, "/");
-    $user["user"] = [];
-    $user["kode"] = [[]];
+// Pastikan koneksi MySQLi tersedia
+if (!isset($mysql) || !$mysql instanceof mysqli) {
+	die("Koneksi database gagal.");
 }
 
-	$user_id = $user_1["id"];
-	$user["user"] = $user_1;
-	$bookings = $mysql->query("SELECT * FROM kode WHERE id_user=$user_id");
-	$i = 0;
-	while ($row = $bookings->fetch_assoc()) {
-		foreach ($row as $key => $value) {
-			$user["kode"][$i][$key] = $value;
+// --- Logic Otentikasi & Booking Session-based (OOP MySQLi & Prepared Statements) ---
+
+$is_logged_in = isset($_SESSION['user_id']);
+$user_id = $is_logged_in ? $_SESSION['user_id'] : null;
+$user_bookings = [];
+$user_data = [];
+
+if ($is_logged_in) {
+	// 1. Fetch data user (opsional, tapi baik untuk konfirmasi)
+	$stmt_user = $mysql->prepare("SELECT id, username, role FROM users WHERE id = ?");
+	// Handle prepare error
+	if ($stmt_user === false) {
+		error_log("Prepare failed (users): " . $mysql->error);
+	} else {
+		$stmt_user->bind_param("i", $user_id);
+		$stmt_user->execute();
+		$user_result = $stmt_user->get_result();
+		$user_data = $user_result->fetch_assoc();
+		$stmt_user->close();
+	}
+
+
+	// 2. Fetch booking user (bookings)
+	// Ambil hanya id_pesawat dan status untuk pengecekan cepat
+	// PERBAIKAN: Mengganti tabel 'kode' menjadi 'bookings' sesuai skema SQL
+	$stmt_bookings = $mysql->prepare("SELECT id_pesawat, status FROM bookings WHERE id_user = ?");
+	if ($stmt_bookings === false) {
+		error_log("Prepare failed (bookings): " . $mysql->error);
+	} else {
+		$stmt_bookings->bind_param("i", $user_id);
+		$stmt_bookings->execute();
+		$bookings_result = $stmt_bookings->get_result();
+
+		// Simpan booking dalam array asosiatif dengan id_pesawat sebagai kunci untuk O(1) lookup
+		while ($row = $bookings_result->fetch_assoc()) {
+			$user_bookings[$row['id_pesawat']] = $row;
 		}
-		$i++;
+		$stmt_bookings->close();
 	}
 }
 
+
+// --- Query Semua Tiket ---
+$query = "SELECT * FROM pesawat";
+$result_semua_tiket = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
+
 $result_pencarian = null;
 
+// --- Query Pencarian (OOP MySQLi & Prepared Statements) ---
 if (isset($_GET["dari"]) && isset($_GET["ke"])) {
-	$dari = $_GET["dari"];
-	$ke = $_GET["ke"];
+	// Tambahkan wildcard dan amankan input
+	$dari_param = "%" . $_GET["dari"] . "%";
+	$ke_param = "%" . $_GET["ke"] . "%";
 
-	$result_pencarian = $mysql->query("SELECT * FROM pesawat WHERE asal LIKE '%$dari%' AND tujuan LIKE '%$ke%'")->fetch_all(MYSQLI_ASSOC);
+	// Gunakan Prepared Statement
+	$stmt_search = $mysql->prepare("SELECT * FROM pesawat WHERE asal LIKE ? AND tujuan LIKE ?");
+
+	if ($stmt_search === false) {
+		error_log("Prepare failed (search): " . $mysql->error);
+		$result_pencarian = [];
+	} else {
+		$stmt_search->bind_param("ss", $dari_param, $ke_param);
+		$stmt_search->execute();
+		$result_pencarian = $stmt_search->get_result()->fetch_all(MYSQLI_ASSOC);
+		$stmt_search->close();
+	}
 }
-
-
 ?>
 
 
@@ -79,29 +104,10 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 </head>
 
 <body>
-	<!-- Navbar -->
-	<nav class="navbar navbar-expand-lg navbar-light fixed-top">
-		<div class="container">
-			<a class="navbar-brand text-white animate__animated animate__fadeIn" href="index.php">
-				<i class="bi bi-airplane me-2"></i>Kyy air line
-			</a>
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<div class="collapse navbar-collapse" id="navbarNav">
-				<ul class="navbar-nav ms-auto">
-					<li class="nav-item animate__animated animate__fadeIn animate__delay-1s">
-						<a class="nav-link text-white" href="index.php"><i class="bi bi-house-door me-1"></i>Home</a>
-					</li>
-					<li class="nav-item animate__animated animate__fadeIn animate__delay-2s">
-						<a class="nav-link text-white" href="index.php#promo"><i class="bi bi-tag me-1"></i>Promo</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</nav>
+	<?php
+	include "navbar.php";
+	?>
 
-	<!-- Search Form -->
 	<section class="container py-5 mt-5">
 		<div class="search-form p-4 mb-5 animate__animated animate__fadeIn">
 			<h2 class="mb-4 text-center fw-bold">Cari Tiket <span class="text-primary-gradient">Pesawat</span></h2>
@@ -111,7 +117,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 						<label for="dari" class="form-label"><i class="bi bi-geo-alt-fill me-1 text-primary"></i>Dari</label>
 						<div class="input-group">
 							<span class="input-group-text bg-light"><i class="bi bi-airplane-engines"></i></span>
-							<input type="text" class="form-control" id="dari" name="dari" placeholder="Kota asal" value="<?php echo isset($_GET['dari']) ? $_GET['dari'] : ''; ?>" required>
+							<input type="text" class="form-control" id="dari" name="dari" placeholder="Kota asal" value="<?php echo isset($_GET['dari']) ? htmlspecialchars($_GET['dari']) : ''; ?>" required>
 							<div class="invalid-feedback">Masukkan kota asal</div>
 						</div>
 					</div>
@@ -119,7 +125,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 						<label for="ke" class="form-label"><i class="bi bi-geo-alt-fill me-1 text-primary"></i>Ke</label>
 						<div class="input-group">
 							<span class="input-group-text bg-light"><i class="bi bi-airplane-fill"></i></span>
-							<input type="text" class="form-control" id="ke" name="ke" placeholder="Kota tujuan" value="<?php echo isset($_GET['ke']) ? $_GET['ke'] : ''; ?>" required>
+							<input type="text" class="form-control" id="ke" name="ke" placeholder="Kota tujuan" value="<?php echo isset($_GET['ke']) ? htmlspecialchars($_GET['ke']) : ''; ?>" required>
 							<div class="invalid-feedback">Masukkan kota tujuan</div>
 						</div>
 					</div>
@@ -127,7 +133,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 						<label for="tanggal" class="form-label"><i class="bi bi-calendar-event me-1 text-primary"></i>Tanggal</label>
 						<div class="input-group">
 							<span class="input-group-text bg-light"><i class="bi bi-calendar3"></i></span>
-							<input type="date" class="form-control" id="tanggal" name="tanggal" value="<?php echo isset($_GET['tanggal']) ? $_GET['tanggal'] : date('Y-m-d'); ?>" required>
+							<input type="date" class="form-control" id="tanggal" name="tanggal" value="<?php echo isset($_GET['tanggal']) ? htmlspecialchars($_GET['tanggal']) : date('Y-m-d'); ?>" required>
 							<div class="invalid-feedback">Pilih tanggal keberangkatan</div>
 						</div>
 					</div>
@@ -151,9 +157,9 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 		</div>
 
 		<?php
+		// Cek apakah hasil pencarian ada dan ada parameter 'dari'
 		if (isset($result_pencarian) && isset($_GET["dari"]) && !empty($result_pencarian)) {
 		?>
-			<!-- Hasil pencarian -->
 			<section class="container">
 				<div class="search-results">
 					<div class="d-flex justify-content-between align-items-center mb-4">
@@ -167,6 +173,9 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 						<?php
 						foreach ($result_pencarian as $pesawat) {
 							$rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
+							// Cek status booking
+							$is_booked = $is_logged_in && isset($user_bookings[$pesawat["id"]]);
+							$booking_status = $is_booked ? htmlspecialchars($user_bookings[$pesawat["id"]]['status']) : '';
 						?>
 
 							<div class="col-md-6" data-animate="animate-fade-in">
@@ -178,16 +187,16 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 													<i class="bi bi-airplane text-primary" style="font-size: 1.5rem;"></i>
 												</div>
 												<div>
-													<h5 class="card-title mb-0"><?= $pesawat["nama"] ?></h5>
-													<span class="badge bg-light text-dark"><?= $pesawat["no_penerbangan"] ?></span>
+													<h5 class="card-title mb-0"><?= htmlspecialchars($pesawat["nama"]) ?></h5>
+													<span class="badge bg-light text-dark"><?= htmlspecialchars($pesawat["no_penerbangan"]) ?></span>
 												</div>
 											</div>
-											<span class="badge bg-primary bg-opacity-10 text-primary"><?= $pesawat["kelas"] ?></span>
+											<span class="badge bg-primary bg-opacity-10 text-primary"><?= "Tersedia " . $pesawat["kursi_tersedia"] . " kursi" ?? 'Tidak ada kursi tersedia' ?></span>
 										</div>
 										<div class="flight-route d-flex justify-content-between align-items-center mb-4 position-relative">
 											<div class="text-center">
-												<h6 class="fw-bold mb-0"><?= $pesawat["asal"] ?></h6>
-												<p class="mb-0 text-primary"><?= $pesawat["waktu_berangkat"] ?></p>
+												<h6 class="fw-bold mb-0"><?= htmlspecialchars($pesawat["asal"]) ?></h6>
+												<p class="mb-0 text-primary"><?= htmlspecialchars($pesawat["waktu_berangkat"]) ?></p>
 											</div>
 											<div class="flight-line position-relative flex-grow-1 mx-3">
 												<div class="flight-icon">
@@ -195,8 +204,8 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 												</div>
 											</div>
 											<div class="text-center">
-												<h6 class="fw-bold mb-0"><?= $pesawat["tujuan"] ?></h6>
-												<p class="mb-0 text-primary"><?= $pesawat["waktu_tiba"] ?></p>
+												<h6 class="fw-bold mb-0"><?= htmlspecialchars($pesawat["tujuan"]) ?></h6>
+												<p class="mb-0 text-primary"><?= htmlspecialchars($pesawat["waktu_tiba"]) ?></p>
 											</div>
 										</div>
 										<div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
@@ -204,35 +213,19 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 												<p class="mb-0">Harga per orang</p>
 												<p class="card-text fw-bold text-primary mb-0 fs-5"><?= $rupiah ?></p>
 											</div>
-											<?php
-											if (isset($_COOKIE["remember_token"])) {
-												$isBooking = array_filter($user["kode"], function ($item) use ($pesawat) {
-													if (!isset($item["id_pesawat"])) return false;
-													return $item["id_pesawat"] == $pesawat["id"];
-												});
-
-												if (empty($isBooking)) {
-											?>
-													<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
-														<i class="bi bi-check-circle me-1"></i>Pilih Tiket
-													</a>
-												<?php
-												} else {
-												?>
-													<button class="btn btn-primary" disabled>
-														<i class="bi bi-x-circle me-1"></i>Sudah di pesan
-													</button>
-												<?php
-												}
-											} else {
-												?>
-												<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
+											<?php if (!$is_logged_in): ?>
+												<a href="./login.php" class="btn btn-primary">
+													<i class="bi bi-box-arrow-in-right me-1"></i>Pilih Tiket (Login)
+												</a>
+											<?php elseif ($is_booked): ?>
+												<button class="btn btn-warning" disabled>
+													<i class="bi bi-x-circle me-1"></i>Status: <?= ucfirst($booking_status) ?>
+												</button>
+											<?php else: ?>
+												<a href="./konfirmasi.php?pesawat=<?= htmlspecialchars($pesawat["id"]) ?>" class="btn btn-primary">
 													<i class="bi bi-check-circle me-1"></i>Pilih Tiket
 												</a>
-											<?php
-											}
-											?>
-
+											<?php endif; ?>
 										</div>
 									</div>
 								</div>
@@ -261,8 +254,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 		?>
 
 
-		<!-- Semua Tiket -->
-		<section class="container" style="<?php if (isset($result_pencarian)) echo "margin-top: 10rem;" ?>">
+		<section class="container" style="<?php if (isset($result_pencarian) && isset($_GET["dari"])) echo "margin-top: 10rem;" ?>">
 			<div class="search-results">
 				<div class="d-flex justify-content-between align-items-center mb-4">
 					<h3 class="fw-bold mb-0">Semua <span class="text-primary-gradient">Tiket</span></h3>
@@ -275,6 +267,9 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 					<?php
 					foreach ($result_semua_tiket as $pesawat) {
 						$rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
+						// Cek status booking
+						$is_booked = $is_logged_in && isset($user_bookings[$pesawat["id"]]);
+						$booking_status = $is_booked ? htmlspecialchars($user_bookings[$pesawat["id"]]['status']) : '';
 					?>
 
 						<div class="col-md-6" data-animate="animate-fade-in">
@@ -286,16 +281,16 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 												<i class="bi bi-airplane text-primary" style="font-size: 1.5rem;"></i>
 											</div>
 											<div>
-												<h5 class="card-title mb-0"><?= $pesawat["nama"] ?></h5>
-												<span class="badge bg-light text-dark"><?= $pesawat["no_penerbangan"] ?></span>
+												<h5 class="card-title mb-0"><?= htmlspecialchars($pesawat["nama"]) ?></h5>
+												<span class="badge bg-light text-dark"><?= htmlspecialchars($pesawat["no_penerbangan"]) ?></span>
 											</div>
 										</div>
-										<span class="badge bg-primary bg-opacity-10 text-primary"><?= $pesawat["kelas"] ?></span>
+										<span class="badge bg-primary bg-opacity-10 text-primary"><?= "Tersedia " . $pesawat["kursi_tersedia"] . " kursi" ?? 'Tidak ada kursi tersedia' ?></span>
 									</div>
 									<div class="flight-route d-flex justify-content-between align-items-center mb-4 position-relative">
 										<div class="text-center">
-											<h6 class="fw-bold mb-0"><?= $pesawat["asal"] ?></h6>
-											<p class="mb-0 text-primary"><?= $pesawat["waktu_berangkat"] ?></p>
+											<h6 class="fw-bold mb-0"><?= htmlspecialchars($pesawat["asal"]) ?></h6>
+											<p class="mb-0 text-primary"><?= htmlspecialchars($pesawat["waktu_berangkat"]) ?></p>
 										</div>
 										<div class="flight-line position-relative flex-grow-1 mx-3">
 											<div class="flight-icon">
@@ -303,8 +298,8 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 											</div>
 										</div>
 										<div class="text-center">
-											<h6 class="fw-bold mb-0"><?= $pesawat["tujuan"] ?></h6>
-											<p class="mb-0 text-primary"><?= $pesawat["waktu_tiba"] ?></p>
+											<h6 class="fw-bold mb-0"><?= htmlspecialchars($pesawat["tujuan"]) ?></h6>
+											<p class="mb-0 text-primary"><?= htmlspecialchars($pesawat["waktu_tiba"]) ?></p>
 										</div>
 									</div>
 									<div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
@@ -312,28 +307,19 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 											<p class="mb-0">Harga per orang</p>
 											<p class="card-text fw-bold text-primary mb-0 fs-5"><?= $rupiah ?></p>
 										</div>
-										<?php
-										if (isset($_COOKIE["remember_token"])) {
-											$isBooking = array_values(array_filter($user["kode"], function ($item) use ($pesawat) {
-												if (!isset($item["id_pesawat"])) return false;
-												return $item["id_pesawat"] == $pesawat["id"];
-											}));
-											if (!empty($isBooking) && !empty($isBooking[0])) {
-										?>
-												<button class="btn btn-primary" disabled>
-													<i class="bi bi-x-circle me-1"></i><?= $isBooking[0]["status"] ?>
-												</button>
-											<?php
-											} else {
-											?>
-												<a href="./konfirmasi.php?pesawat=<?= $pesawat["slug"] ?>" class="btn btn-primary">
-													<i class="bi bi-check-circle me-1"></i>Pilih Tiket
-												</a>
-										<?php
-											}
-										}
-										?>
-
+										<?php if (!$is_logged_in): ?>
+											<a href="./login.php" class="btn btn-primary">
+												<i class="bi bi-box-arrow-in-right me-1"></i>Pilih Tiket (Login)
+											</a>
+										<?php elseif ($is_booked): ?>
+											<button class="btn btn-warning" disabled>
+												<i class="bi bi-x-circle me-1"></i>Status: <?= ucfirst($booking_status) ?>
+											</button>
+										<?php else: ?>
+											<a href="./konfirmasi.php?pesawat=<?= htmlspecialchars($pesawat["id"]) ?>" class="btn btn-primary">
+												<i class="bi bi-check-circle me-1"></i>Pilih Tiket
+											</a>
+										<?php endif; ?>
 									</div>
 								</div>
 							</div>
@@ -347,7 +333,6 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 		</section>
 	</section>
 
-	<!-- Footer -->
 	<footer class="footer text-white text-center py-5 mt-5">
 		<div class="container">
 			<div class="row">

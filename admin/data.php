@@ -9,7 +9,6 @@
         <th scope="col">no</th>
         <th scope="col">nama</th>
         <th scope="col">no_penerbangan</th>
-        <th scope="col">kelas</th>
         <th scope="col">asal</th>
         <th scope="col">tujuan</th>
         <th scope="col">waktu_berangkat</th>
@@ -29,7 +28,6 @@
           <th scope="row"><?= $no; ?></th>
           <td><?= $data['nama'] ?></td>
           <td><?= $data['no_penerbangan'] ?></td>
-          <td><?= $data['kelas'] ?></td>
           <td><?= $data['asal'] ?></td>
           <td><?= $data['tujuan'] ?></td>
           <td><?= $data['waktu_berangkat'] ?></td>

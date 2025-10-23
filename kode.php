@@ -1,83 +1,194 @@
 <?php
+session_start();
 
 include "./koneksi.php";
-include "./proteksi.php";
-proteksi();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kelas']) && isset($_POST['slug'])) {
-    $kelas = $mysql->real_escape_string($_POST['kelas']);
-    $slug = $mysql->real_escape_string($_POST['slug']);
-
-    $update = $mysql->query("UPDATE pesawat SET kelas='$kelas' WHERE slug='$slug'");
-}
-function generateBookingCode(int $length = 6): string
+// Fungsi generate booking code (huruf besar) dan memastikan unik (cek DB)
+function generateBookingCode(mysqli $mysql, int $length = 6): string
 {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $maxIndex = strlen($alphabet) - 1;
-    $code = '';
 
-    for ($i = 0; $i < $length; $i++) {
-        $idx = random_int(0, $maxIndex);
-        $code .= $alphabet[$idx];
+    // loop sampai ketemu kode unik (batasi percobaan)
+    for ($attempt = 0; $attempt < 10; $attempt++) {
+        $code = '';
+        for ($i = 0; $i < $length; $i++) {
+            $idx = random_int(0, $maxIndex);
+            $code .= $alphabet[$idx];
+        }
+
+        // cek unik
+        // Catatan: Menggunakan nama tabel 'kode' seperti yang Anda gunakan
+        $stmt = $mysql->prepare("SELECT COUNT(*) AS cnt FROM bookings WHERE kode = ?");
+        $stmt->bind_param("s", $code);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if ((int)$res['cnt'] === 0) {
+            return $code;
+        }
     }
 
-    return $code;
+    // fallback: gunakan uniqid jika 10 percobaan gagal (sangat jarang)
+    return strtoupper(substr(uniqid('', true), -$length));
 }
 
-$remember_token = $_COOKIE["remember_token"];
+$kelas = $_POST['kelas'];
+// Ambil id dari GET atau POST (prefer GET untuk tampilan)
+$id_param = null;
+if (isset($_GET['slug'])) {
+    // ID seharusnya integer, tidak perlu real_escape_string jika langsung cast
+    $id_param = (int)$_GET['slug'];
+} elseif (isset($_POST['slug'])) {
+    $id_param = (int)$_POST['slug'];
+}
+
+if (empty($id_param)) {
+    // id wajib
+    http_response_code(400);
+    echo "Parameter id tidak ditemukan.";
+    exit;
+}
+
+// Ambil user dari remember_token cookie (blok ini tidak diubah)
+if (!isset($_SESSION["user_id"]) || empty($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit;
+}
+$user_id = $_SESSION["user_id"];
+
+// ambil user
+$stmt = $mysql->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+$stmt->bind_param("s", $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
+$user_row = $res->fetch_assoc();
+$stmt->close();
+
+if (!$user_row) {
+    // token tidak valid
+    header("Location: login.php");
+    exit;
+}
+
+$user_id = (int)$user_row['id'];
+
+// ambil data pesawat berdasarkan ID
+// Query diperbaiki: Menggunakan 'id' dan kolom-kolom yang sesuai skema SQL
+$stmt = $mysql->prepare("SELECT id, nama, no_penerbangan, asal, tujuan, waktu_berangkat, waktu_tiba, harga, kursi_tersedia FROM pesawat WHERE id = ? LIMIT 1");
+$stmt->bind_param("i", $id_param); // 'i' untuk id (integer)
+$stmt->execute();
+$res = $stmt->get_result();
+$pesawat = $res->fetch_assoc();
+$stmt->close();
+
+if (!$pesawat) {
+    http_response_code(404);
+    echo "Penerbangan tidak ditemukan.";
+    exit;
+}
+
+$id_pesawat = (int)$pesawat['id'];
+
+// cek apakah user sudah punya booking untuk pesawat ini
+$stmt = $mysql->prepare("SELECT * FROM bookings WHERE id_user = ? AND id_pesawat = ? LIMIT 1");
+$stmt->bind_param("ii", $user_id, $id_pesawat);
+$stmt->execute();
+$res = $stmt->get_result();
+$existing_booking = $res->fetch_assoc();
+$stmt->close();
+
 $booking_code = "-";
-$slug = $_POST["slug"];
+$status_booking = 'Menunggu persetujuan'; // default display (user friendly)
 
-$user = [
-    "user" => [],
-    "kode" => [[]]
-];
-
-$user_1 = $mysql->query("SELECT * FROM users WHERE remember_token='$remember_token'")->fetch_assoc();
-$user_id = $user_1["id"];
-$user["user"] = $user_1;
-$bookings = $mysql->query("SELECT * FROM kode WHERE id_user=$user_id");
-$i = 0;
-while ($row = $bookings->fetch_assoc()) {
-    foreach ($row as $key => $value) {
-        $user["kode"][$i][$key] = $value;
-    }
-    $i++;
-}
-
-$pesawat = $mysql->query("SELECT * FROM pesawat WHERE slug='$slug'")->fetch_assoc();
-$id_pesawat = $pesawat["id"];
-
-$isBooking = array_filter($user["kode"], function ($item) use ($id_pesawat) {
-    if (!isset($item["id_pesawat"])) return false;
-    return $item["id_pesawat"] == $id_pesawat;
-});
-
-$status_booking = 'Menunggu persetujuan'; // default
-
-if (!empty($isBooking)) {
-    $result = $mysql->query("SELECT * FROM users u 
-        LEFT JOIN kode k ON k.id_user = u.id 
-        LEFT JOIN pesawat p ON p.id = $id_pesawat 
-        WHERE remember_token='$remember_token'");
-    
-    $row = $result->fetch_assoc();
-    $booking_code = $row["kode"];
-    $status_booking = $row["status"];
+// jika sudah ada booking -> tampilkan info booking (tidak membuat booking baru)
+if ($existing_booking) {
+    $booking_code = $existing_booking['kode'] ?? "-";
+    // normalisasi status untuk tampilan
+    $status_booking = isset($existing_booking['status']) ? ucfirst($existing_booking['status']) : 'Menunggu persetujuan';
 } else {
-    $booking_code = generateBookingCode();
-    $mysql->query("INSERT INTO `kode` (`id_pesawat`, `id_user`, `kode`, `status`) VALUES ($id_pesawat, $user_id, '$booking_code', 'menunggu')");
-    $status_booking = 'Menunggu persetujuan';
+    // belum booking -> buat booking baru dengan proteksi stok
+    try {
+        // mulai transaction
+        $mysql->begin_transaction();
+
+        // kunci baris pesawat (FOR UPDATE) untuk mencegah race condition
+        // Mengganti 'available_seat' menjadi 'kursi_tersedia'
+        $stmt = $mysql->prepare("SELECT kursi_tersedia FROM pesawat WHERE id = ? FOR UPDATE");
+        $stmt->bind_param("i", $id_pesawat);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $row = $res->fetch_assoc();
+        $stmt->close();
+
+        if (!$row) {
+            // pesawat hilang setelah query awal (unlikely)
+            $mysql->rollback();
+            throw new Exception("Data penerbangan tidak ditemukan saat proses booking.");
+        }
+
+        $available_seat = (int)$row['kursi_tersedia'];
+        if ($available_seat <= 0) {
+            // tidak tersedia
+            $mysql->rollback();
+            $booking_code = "-";
+            $status_booking = 'Stok penuh';
+        } else {
+            // buat kode booking unik (tabel kode)
+            $new_code = generateBookingCode($mysql, 6);
+
+            // insert booking (status 'menunggu' default)
+            $stmt = $mysql->prepare("INSERT INTO bookings (id_pesawat, id_user, kode, status, kelas) VALUES (?, ?, ?, 'menunggu', ?)");
+            $stmt->bind_param("iiss", $id_pesawat, $user_id, $new_code, $kelas);
+            $stmt->execute();
+            $insert_id = $stmt->insert_id;
+            $stmt->close();
+
+            if ($insert_id <= 0) {
+                $mysql->rollback();
+                throw new Exception("Gagal menyimpan booking.");
+            }
+
+            $jumlah_penumpang = $_POST["jumlah"];
+            // kurangi kursi_tersedia (Mengganti 'available_seat')
+            $stmt = $mysql->prepare("UPDATE pesawat SET kursi_tersedia = kursi_tersedia - $jumlah_penumpang WHERE id = ?");
+            $stmt->bind_param("i", $id_pesawat);
+            $stmt->execute();
+            $stmt->close();
+
+            $mysql->commit();
+
+            $booking_code = $new_code;
+            $status_booking = 'Menunggu persetujuan';
+        }
+    } catch (Exception $e) {
+        if ($mysql->errno) {
+            // jika transaction masih aktif atau error, rollback
+            @$mysql->rollback();
+        }
+        // Log error di server (jika ada mekanisme logging)
+        error_log("Booking error: " . $e->getMessage());
+        var_dump($e);
+        // Tampilkan pesan sopan ke user
+        $booking_code = "-";
+        $status_booking = 'Terjadi kesalahan. Coba lagi nanti.';
+    }
 }
+
+// untuk tampilan, escape
+$booking_code_html = htmlspecialchars($booking_code, ENT_QUOTES, 'UTF-8');
+$status_booking_html = htmlspecialchars($status_booking, ENT_QUOTES, 'UTF-8');
+// Label penerbangan disesuaikan dengan kolom 'no_penerbangan', 'asal', dan 'tujuan'
+$flight_label = htmlspecialchars(($pesawat['no_penerbangan'] ?? '') . " — " . ($pesawat['asal'] ?? '') . " → " . ($pesawat['tujuan'] ?? ''), ENT_QUOTES, 'UTF-8');
 
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Konfirmasi Pesanan - Tiket Pesawat</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -143,39 +254,55 @@ if (!empty($isBooking)) {
             <div class="col-lg-6 col-md-8">
                 <div class="card kode-card p-4">
                     <div class="plane-icon">
-                        <svg viewBox="0 0 48 48">
+                        <svg viewBox="0 0 48 48" aria-hidden="true">
                             <path d="M44.5 6.5L3.5 22.5C2.7 22.8 2.7 23.9 3.5 24.2L13.5 28.5L20.5 44.5C20.8 45.3 21.9 45.3 22.2 44.5L26.5 34.5L36.5 44.5C37.1 45.1 38.1 44.7 38.1 43.9V34.5L44.5 31.5C45.3 31.2 45.3 30.1 44.5 29.8L34.5 25.5L44.5 6.5Z" />
                         </svg>
                     </div>
-                    <h2 class="text-center mb-3" style="color:#1a73e8;font-weight:700;">Pesanan Berhasil!</h2>
-                    <p class="text-center mb-2">Terima kasih, pesanan tiket pesawat Anda telah dikonfirmasi.</p>
-                    <div class="kode-unik" id="kodeUnik"><?= $booking_code ?></div>
+
+                    <h2 class="text-center mb-1" style="color:#1a73e8;font-weight:700;">Pesanan Berhasil!</h2>
+                    <p class="text-center mb-2">Terima kasih, pesanan tiket pesawat Anda telah diproses.</p>
+
+                    <div class="text-center mb-2 small text-muted"><?= $flight_label ?></div>
+
+                    <div class="kode-unik" id="kodeUnik"><?= $booking_code_html ?></div>
+
                     <p class="text-center text-muted mb-2">Simpan kode unik ini untuk proses check-in atau konfirmasi pembayaran.</p>
+
                     <div class="text-center mb-4">
                         <span class="badge bg-warning text-dark">
-                            Status: <?= ucfirst($status_booking) ?>
+                            Status: <?= $status_booking_html ?>
                         </span>
                     </div>
+
                     <div class="d-flex justify-content-around">
                         <a href="index.php" class="btn btn-home px-4">Beranda</a>
-                        <button onclick="handleCopy(this)" class="btn btn-primary px-4">Salin</button>
+                        <button onclick="handleCopy()" class="btn btn-primary px-4">Salin</button>
                         <button onclick="window.print();" class="btn btn-primary px-4">Print</button>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function handleCopy(e) {
-            const code = '<?= $booking_code ?>';
-            alert("Kode disalin");
-
-            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                return navigator.clipboard.writeText(code);
+        function handleCopy() {
+            const code = '<?= $booking_code_html ?>';
+            if (!code || code === '-') {
+                alert("Tidak ada kode untuk disalin.");
+                return;
             }
-
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(code).then(function() {
+                    alert("Kode disalin");
+                }, function() {
+                    alert("Gagal menyalin kode");
+                });
+                return;
+            }
+            // fallback older browsers
             const textarea = document.createElement('textarea');
             textarea.style.position = 'fixed';
             textarea.style.top = '-9999px';
@@ -185,7 +312,12 @@ if (!empty($isBooking)) {
             document.body.appendChild(textarea);
             textarea.select();
             textarea.setSelectionRange(0, textarea.value.length);
-            document.execCommand('copy');
+            try {
+                document.execCommand('copy');
+                alert("Kode disalin");
+            } catch (e) {
+                alert("Gagal menyalin kode");
+            }
             document.body.removeChild(textarea);
         }
     </script>

@@ -1,44 +1,76 @@
-
 <?php
+// Pastikan sesi dimulai di awal file
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Include protection and database connection
-include "./proteksi.php";
-// Ensure the user is logged in before accessing this page
-proteksi();
+include "./koneksi.php";
 
 // Initialize an array to hold the booking history
 $user_history = [];
+$user_id = null; // Inisialisasi ID pengguna
 
-// Check if the user's remember_token cookie is set
-if (isset($_COOKIE["remember_token"])) {
-    $remember_token = $_COOKIE["remember_token"];
+// ========== 1. AUTENTIKASI MENGGUNAKAN SESSION USERNAME ==========
+if (isset($_SESSION["username"])) {
+    $username = $_SESSION["username"];
 
-    // Fetch the logged-in user's ID from the database
-    $user_result = $mysql->query("SELECT id FROM users WHERE remember_token='$remember_token'");
-    
+    // Fetch the logged-in user's ID from the database using Prepared Statement
+    $stmt_user = $mysql->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
+    if ($stmt_user === false) {
+        // Handle error prepare statement
+        error_log("Error preparing user query: " . $mysql->error);
+        header("Location: login.php");
+        exit;
+    }
+
+    $stmt_user->bind_param("s", $username);
+    $stmt_user->execute();
+    $user_result = $stmt_user->get_result();
+
     if ($user_result->num_rows > 0) {
         $user_data = $user_result->fetch_assoc();
-        $user_id = $user_data["id"];
+        $user_id = (int)$user_data["id"];
+    }
+    $stmt_user->close();
+}
 
-        // Query to get the user's booking history by joining 'kode' and 'pesawat' tables
-        $query = "
-            SELECT 
-                p.nama, p.no_penerbangan, p.kelas, p.asal, p.tujuan, 
-                p.waktu_berangkat, p.waktu_tiba, p.harga, p.slug,
-                k.kode, k.status 
-            FROM kode k
-            JOIN pesawat p ON k.id_pesawat = p.id
-            WHERE k.id_user = $user_id
-            ORDER BY k.id DESC
-        ";
-        
-        $history_result = $mysql->query($query);
-        
+// Jika ID pengguna ditemukan
+if ($user_id) {
+    // ========== 2. & 3. QUERY HISTORY DENGAN PREPARED STATEMENT DAN KOLOM YANG BENAR ==========
+    // Kolom 'kelas' diambil dari tabel KODE (bookings) -> k.kelas
+    $query = "
+        SELECT 
+            p.nama, p.no_penerbangan, p.asal, p.tujuan, 
+            p.waktu_berangkat, p.waktu_tiba, p.harga,
+            k.kode, k.status, k.kelas
+        FROM bookings k
+        JOIN pesawat p ON k.id_pesawat = p.id
+        WHERE k.id_user = ?
+        ORDER BY k.id DESC
+    ";
+
+    // Menggunakan prepared statement untuk query history
+    $stmt_history = $mysql->prepare($query);
+    if ($stmt_history === false) {
+        // Handle error prepare statement
+        error_log("Error preparing history query: " . $mysql->error);
+    } else {
+        // Bind parameter 'i' (integer) untuk id_user
+        $stmt_history->bind_param("i", $user_id);
+        $stmt_history->execute();
+        $history_result = $stmt_history->get_result();
+
         // If the query is successful, fetch all results
         if ($history_result) {
             $user_history = $history_result->fetch_all(MYSQLI_ASSOC);
         }
+        $stmt_history->close();
     }
+} else {
+    // Jika tidak ada username di sesi atau user tidak ditemukan, kembali ke login
+    header("Location: login.php");
+    exit;
 }
 ?>
 
@@ -74,8 +106,8 @@ if (isset($_COOKIE["remember_token"])) {
                     <li class="nav-item animate__animated animate__fadeIn">
                         <a class="nav-link text-white" href="pencarian.php"><i class="bi bi-search me-1"></i>Cari Tiket</a>
                     </li>
-                    
-                     <li class="nav-item animate__animated animate__fadeIn">
+
+                    <li class="nav-item animate__animated animate__fadeIn">
                         <button class="btn btn-danger ms-lg-3 text-white" onclick="handleLogOut();"><i class="bi bi-box-arrow-right me-1"></i>Log out</button>
                     </li>
                 </ul>
@@ -92,7 +124,7 @@ if (isset($_COOKIE["remember_token"])) {
                     <span>Daftar tiket yang pernah Anda pesan</span>
                 </div>
             </div>
-            
+
             <?php if (empty($user_history)) : ?>
                 <div class="text-center py-5">
                     <i class="bi bi-journal-x" style="font-size: 4rem; color: #6c757d;"></i>
@@ -111,7 +143,7 @@ if (isset($_COOKIE["remember_token"])) {
 
                         if ($status_text == 'menunggu' || $status_text == 'menunggu persetujuan') {
                             $status_class = 'bg-warning text-dark';
-                        } elseif ($status_text == 'dikonfirmasi' || $status_text == 'berhasil') {
+                        } elseif ($status_text == 'dikonfirmasi' || $status_text == 'disetujui') {
                             $status_class = 'bg-success';
                         } elseif ($status_text == 'dibatalkan' || $status_text == 'gagal') {
                             $status_class = 'bg-danger';
@@ -130,7 +162,7 @@ if (isset($_COOKIE["remember_token"])) {
                                                 <span class="badge bg-light text-dark"><?= htmlspecialchars($pesanan["no_penerbangan"]) ?></span>
                                             </div>
                                         </div>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary"><?= htmlspecialchars($pesanan["kelas"]) ?></span>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-bold"><?= htmlspecialchars($pesanan["kelas"] ?? '-') ?></span>
                                     </div>
                                     <div class="flight-route d-flex justify-content-between align-items-center mb-4 position-relative">
                                         <div class="text-center">
@@ -167,59 +199,57 @@ if (isset($_COOKIE["remember_token"])) {
     </section>
 
     <footer class="footer text-white text-center py-5 mt-5">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-4 mb-4 mb-md-0 text-md-start">
-					<h5 class="mb-3">TiketPesawat</h5>
-					<p class="mb-0">Platform pemesanan tiket pesawat terpercaya dengan harga terbaik dan layanan prima.</p>
-					<div class="mt-3">
-						<a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
-						<a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
-						<a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
-						<a href="#" class="text-white"><i class="bi bi-youtube"></i></a>
-					</div>
-				</div>
-				<div class="col-md-2 mb-4 mb-md-0 text-md-start">
-					<h6 class="mb-3">Perusahaan</h6>
-					<ul class="list-unstyled">
-						<li class="mb-2"><a href="#" class="text-white">Tentang Kami</a></li>
-						<li class="mb-2"><a href="#" class="text-white">Karir</a></li>
-						<li class="mb-2"><a href="#" class="text-white">Blog</a></li>
-					</ul>
-				</div>
-				<div class="col-md-2 mb-4 mb-md-0 text-md-start">
-					<h6 class="mb-3">Produk</h6>
-					<ul class="list-unstyled">
-						<li class="mb-2"><a href="#" class="text-white">Tiket Pesawat</a></li>
-						<li class="mb-2"><a href="#" class="text-white">Tiket Kereta</a></li>
-						<li class="mb-2"><a href="#" class="text-white">Paket Wisata</a></li>
-					</ul>
-				</div>
-				<div class="col-md-4 text-md-start">
-					<h6 class="mb-3">Hubungi Kami</h6>
-					<ul class="list-unstyled">
-						<li class="mb-2"><i class="bi bi-envelope me-2"></i> support@tiketpesawat.com</li>
-						<li class="mb-2"><i class="bi bi-telephone me-2"></i> +62 123 4567 890</li>
-						<li class="mb-2"><i class="bi bi-geo-alt me-2"></i> Jl. Pemesanan No. 123, Jakarta</li>
-					</ul>
-				</div>
-			</div>
-			<hr class="my-4 bg-white">
-			<div class="row">
-				<div class="col-md-6 text-md-start">
-					<p class="mb-0">&copy; 2025 TiketPesawat. All rights reserved.</p>
-				</div>
-				<div class="col-md-6 text-md-end">
-					<small>Design by TiketPesawat Team</small>
-				</div>
-			</div>
-		</div>
-	</footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0 text-md-start">
+                    <h5 class="mb-3">TiketPesawat</h5>
+                    <p class="mb-0">Platform pemesanan tiket pesawat terpercaya dengan harga terbaik dan layanan prima.</p>
+                    <div class="mt-3">
+                        <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4 mb-md-0 text-md-start">
+                    <h6 class="mb-3">Perusahaan</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white">Tentang Kami</a></li>
+                        <li class="mb-2"><a href="#" class="text-white">Karir</a></li>
+                        <li class="mb-2"><a href="#" class="text-white">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4 mb-md-0 text-md-start">
+                    <h6 class="mb-3">Produk</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white">Tiket Pesawat</a></li>
+                        <li class="mb-2"><a href="#" class="text-white">Tiket Kereta</a></li>
+                        <li class="mb-2"><a href="#" class="text-white">Paket Wisata</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-md-start">
+                    <h6 class="mb-3">Hubungi Kami</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-envelope me-2"></i> support@tiketpesawat.com</li>
+                        <li class="mb-2"><i class="bi bi-telephone me-2"></i> +62 123 4567 890</li>
+                        <li class="mb-2"><i class="bi bi-geo-alt me-2"></i> Jl. Pemesanan No. 123, Jakarta</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-white">
+            <div class="row">
+                <div class="col-md-6 text-md-start">
+                    <p class="mb-0">&copy; 2025 TiketPesawat. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small>Design by TiketPesawat Team</small>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="./assets/js/main.js"></script>
 </body>
 
 </html>
-
-```

@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 21, 2025 at 07:37 AM
+-- Generation Time: Oct 23, 2025 at 04:49 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -24,30 +24,24 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `kode`
+-- Table structure for table `bookings`
 --
 
-CREATE TABLE `kode` (
+CREATE TABLE `bookings` (
   `id` int NOT NULL,
   `id_pesawat` int NOT NULL,
   `id_user` int NOT NULL,
   `kode` varchar(50) NOT NULL,
-  `status` enum('disetujui','menunggu') NOT NULL
+  `status` enum('disetujui','menunggu') NOT NULL,
+  `kelas` enum('ekonomi','bisnis','first class') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `kode`
+-- Dumping data for table `bookings`
 --
 
-INSERT INTO `kode` (`id`, `id_pesawat`, `id_user`, `kode`, `status`) VALUES
-(10, 3, 8, 'PEVPVC', 'disetujui'),
-(11, 4, 8, 'AFHVCF', 'disetujui'),
-(12, 8, 8, 'RQSFFU', 'disetujui'),
-(13, 7, 9, 'BZUBMG', 'disetujui'),
-(14, 3, 9, 'UPUZKR', 'menunggu'),
-(15, 7, 8, 'PDQGUG', 'menunggu'),
-(16, 9, 8, 'DSKRXO', 'menunggu'),
-(18, 11, 8, 'RSAGSQ', 'menunggu');
+INSERT INTO `bookings` (`id`, `id_pesawat`, `id_user`, `kode`, `status`, `kelas`) VALUES
+(21, 3, 8, 'JEGJYJ', 'menunggu', 'bisnis');
 
 -- --------------------------------------------------------
 
@@ -57,40 +51,24 @@ INSERT INTO `kode` (`id`, `id_pesawat`, `id_user`, `kode`, `status`) VALUES
 
 CREATE TABLE `pesawat` (
   `id` int NOT NULL,
-  `slug` varchar(100) NOT NULL,
   `nama` varchar(50) NOT NULL,
   `no_penerbangan` varchar(50) NOT NULL,
-  `kelas` varchar(50) NOT NULL,
   `asal` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `tujuan` varchar(50) NOT NULL,
   `waktu_berangkat` time DEFAULT NULL,
   `harga` decimal(12,2) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `waktu_tiba` time DEFAULT NULL
+  `waktu_tiba` time DEFAULT NULL,
+  `kursi_tersedia` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `pesawat`
 --
 
-INSERT INTO `pesawat` (`id`, `slug`, `nama`, `no_penerbangan`, `kelas`, `asal`, `tujuan`, `waktu_berangkat`, `harga`, `created_at`, `updated_at`, `waktu_tiba`) VALUES
-(3, 'boeing-0-bn-342', 'Boeing 447', 'BN-342', 'Ekonomi', 'malaysia', 'Jakarta', '10:19:33', '120000.00', '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33'),
-(4, 'garuda-indonesia-ga-001', 'Garuda Indonesia', 'GA-001', 'Ekonomi', 'Bandung', 'singapura', '10:19:33', '1200000.00', '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33'),
-(7, 'air-indonesia-345542323', 'air indonesia', 'GS-367', 'Ekonomi', 'bandung', 'bali', '14:25:00', '2000000.00', '2025-10-07 07:24:52', '2025-10-07 07:24:52', '18:30:00'),
-(8, 'garuda-indonesia-23846786', 'garuda indonesia', 'GA-2267', 'Business', 'jakarta', 'singapura', '10:22:00', '200000000.00', '2025-10-13 01:22:51', '2025-10-13 01:22:51', '05:22:00'),
-(9, 'sriwijaya-air-sa-376', 'Sriwijaya Air', 'SA-376', 'First Class', 'tanggerang', 'Padang', '10:00:00', '200000000.00', '2025-10-13 02:56:50', '2025-10-13 02:56:50', '03:00:00'),
-(11, 'singapura-air-sa-376', 'Singapura air', 'SA-376', 'Ekonomi', 'jakarta', 'Padang', '20:00:00', '2000000.00', '2025-10-21 07:32:53', '2025-10-21 07:32:53', '23:00:00');
-
---
--- Triggers `pesawat`
---
-DELIMITER $$
-CREATE TRIGGER `auto_slug` BEFORE INSERT ON `pesawat` FOR EACH ROW BEGIN
-    SET NEW.slug = LOWER(CONCAT(REPLACE(NEW.nama, ' ', '-'), '-', NEW.no_penerbangan));
-END
-$$
-DELIMITER ;
+INSERT INTO `pesawat` (`id`, `nama`, `no_penerbangan`, `asal`, `tujuan`, `waktu_berangkat`, `harga`, `created_at`, `updated_at`, `waktu_tiba`, `kursi_tersedia`) VALUES
+(3, 'Boeing 447', 'BN-342', 'malaysia', 'Jakarta', '10:19:33', 120000.00, '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33', 15);
 
 -- --------------------------------------------------------
 
@@ -117,18 +95,18 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`, `role`, `remember_token`) VALUES
-(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', '21601499-282e-421f-87b9-0a08b5f17f90'),
-(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', '261447fd-e7ab-4c65-b58a-0bcf9924b4cb'),
-(9, 'Fahmi XD', 'fahmixd', 'fahmixd404@gmail.com', '085645645645', 'Laki-laki', '2025-10-20', 'gdfgdftrg', '202cb962ac59075b964b07152d234b70', 'user', 'e510e982-1609-44f7-812d-145a57422bd5');
+(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', 'f03554a3-52bb-4eb3-86a2-dc584aad4871'),
+(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', 'cbeb6bce-166f-47de-a8f1-2932febb0be9'),
+(9, 'Fahmi XD', 'fahmixd', 'fahmixd404@gmail.com', '085645645645', 'Laki-laki', '2025-10-20', 'gdfgdftrg', '202cb962ac59075b964b07152d234b70', 'user', '9cd755ea-cea4-4936-ae99-4a3fa4c5f363');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indexes for table `kode`
+-- Indexes for table `bookings`
 --
-ALTER TABLE `kode`
+ALTER TABLE `bookings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `kode` (`kode`),
   ADD KEY `id_hotel` (`id_pesawat`),
@@ -151,10 +129,10 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `kode`
+-- AUTO_INCREMENT for table `bookings`
 --
-ALTER TABLE `kode`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+ALTER TABLE `bookings`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `pesawat`
@@ -173,9 +151,9 @@ ALTER TABLE `users`
 --
 
 --
--- Constraints for table `kode`
+-- Constraints for table `bookings`
 --
-ALTER TABLE `kode`
+ALTER TABLE `bookings`
   ADD CONSTRAINT `id_hotel` FOREIGN KEY (`id_pesawat`) REFERENCES `pesawat` (`id`),
   ADD CONSTRAINT `id_user` FOREIGN KEY (`id_user`) REFERENCES `users` (`id`);
 COMMIT;
