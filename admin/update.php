@@ -23,10 +23,7 @@ $data = $tampil->fetch_array();
           <label for="exampleInputEmail1" class="form-label"><i class="bi bi-people-fill text-primary me-2"></i>no_penerbangan</label>
           <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" value="<?= $data["no_penerbangan"] ?>" name="no_penerbangan" required>
         </div>
-        <div class="mb-3">
-          <label for="exampleInputEmail1" class="form-label"><i class="bi bi-tencent-qq text-primary me-2"></i>kelas</label>
-          <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" value="<?= $data["kelas"] ?>" name="kelas" required>
-        </div>
+        
         <div class="mb-3">
           <label for="exampleInputEmail1" class="form-label"><i class="bi bi-laptop text-primary me-2"></i>asal</label>
           <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" value="<?= $data["asal"] ?>" name="asal" required>
@@ -63,18 +60,24 @@ if (isset($_POST['simpan'])) {
 
   $nama = $_POST['nama'];
   $no_penerbangan = $_POST['no_penerbangan'];
-  $kelas = $_POST['kelas'];
+ 
   $asal = $_POST['asal'];
   $tujuan = $_POST['tujuan'];
   $waktu_berangkat = $_POST['waktu_berangkat'];
   $harga = $_POST['harga'];
   $waktu_tiba = $_POST['waktu_tiba'];
 
-  $simpan = $mysql->query("UPDATE pesawat SET nama='$_POST[nama]',no_penerbangan='$_POST[no_penerbangan]',kelas='$_POST[kelas]',asal='$_POST[asal]',tujuan='$_POST[tujuan]',waktu_berangkat='$_POST[waktu_berangkat]',harga='$_POST[harga]',waktu_tiba='$_POST[waktu_tiba]' where id='$id'");
+ 
+  $simpan = $mysql->query("UPDATE pesawat SET nama='$_POST[nama]',no_penerbangan='$_POST[no_penerbangan]',asal='$_POST[asal]',tujuan='$_POST[tujuan]',waktu_berangkat='$_POST[waktu_berangkat]',harga='$_POST[harga]',waktu_tiba='$_POST[waktu_tiba]' where id='$id'");
+    if ($simpan) {
+        header("Location: index.php?page=data"); 
+        exit;
+    } else {
+    
+        echo "<script>alert('Gagal menyimpan data: " . $mysql->error . "');</script>";
+    }
 ?>
-  <script>
-    document.location.href = 'data.php';
-  </script>
+
 <?php
 }
 ?>

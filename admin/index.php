@@ -3,17 +3,17 @@ session_start();
 
 include "../koneksi.php";
 
-// Pastikan hanya admin yang bisa mengakses
+
 if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION["role"] != "admin") {
   header("Location: ../login.php");
   exit;
 }
 
-// 1. Tentukan halaman yang akan dimuat
-$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard'; // Default ke 'dashboard' jika tidak ada parameter
+$page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
-// 2. Fungsi untuk menentukan file yang akan disertakan
+
 function get_include_file($page)
+
 {
   switch ($page) {
     case 'data':
@@ -22,12 +22,14 @@ function get_include_file($page)
       return 'input.php';
     case 'pesanan':
       return 'pesanan.php';
+    case 'users':
+      return 'users.php';
     case 'laporan':
       return 'laporan.php';
     case 'cari':
-      return 'cari.php'; // Digunakan untuk hasil pencarian
+      return 'cari.php';
     case 'dashboard':
-      return 'dashboard.php'; // Digunakan untuk hasil pencarian
+      return 'dashboard.php';
     default:
       return 'dashboard.php';
   }
@@ -35,7 +37,7 @@ function get_include_file($page)
 
 $include_file = get_include_file($page);
 
-// Fungsi untuk menandai menu aktif
+
 function is_active($currentPage, $targetPage)
 {
   return $currentPage === $targetPage ? 'active bg-light' : '';
@@ -53,7 +55,6 @@ function is_active($currentPage, $targetPage)
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <style>
-    /* Tambahkan sedikit CSS untuk menyesuaikan tampilan yang tidak lagi menggunakan iframe */
     body {
       background-color: #f8f9fa;
     }
@@ -107,7 +108,9 @@ function is_active($currentPage, $targetPage)
           <a href="?page=data" class="list-group-item list-group-item-action <?php echo is_active($page, 'data'); ?>">DATA TIKET</a>
           <a href="?page=input" class="list-group-item list-group-item-action <?php echo is_active($page, 'input'); ?>">INPUT DATA TIKET</a>
           <a href="?page=pesanan" class="list-group-item list-group-item-action <?php echo is_active($page, 'pesanan'); ?>">DATA PESANAN</a>
+          <a href="?page=users" class="list-group-item list-group-item-action <?php echo is_active($page, 'users'); ?>">USERS</a>
           <a href="?page=laporan" class="list-group-item list-group-item-action <?php echo is_active($page, 'laporan'); ?>">LAPORAN</a>
+          
 
           <a href="../login.php?logout=1" class="list-group-item list-group-item-action text-danger fw-bold">
             <i class="bi bi-box-arrow-right me-2"></i>LOG OUT

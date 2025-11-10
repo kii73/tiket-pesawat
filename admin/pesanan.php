@@ -1,52 +1,56 @@
 <?php
 include "boot.php";
-include "../koneksi.php"; // Harusnya menyediakan objek koneksi OOP $mysql (mysqli)
+include "../koneksi.php";
 
-// --- A. Authentication dan Authorization (Menggunakan Session) ---
-
-// Cek apakah session role sudah diset dan apakah nilainya adalah 'admin'
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../index.php");
+    ?>
+    <script>
+        window.location.href = "../index.php"
+    </script>
+    <?php
     ob_end_flush();
     exit;
 }
 
-// Pastikan koneksi MySQLi valid sebelum digunakan (sama seperti sebelumnya)
 if (!isset($mysql) || !$mysql instanceof mysqli) {
-    header("Location: ../index.php");
+    ?>
+    <script>
+        window.location.href = "../index.php"
+    </script>
+    <?php
     ob_end_flush();
     exit;
 }
 
-// --- B. Order Approval Action (Menggunakan Prepared Statement) ---
+
 if (isset($_GET["id"])) {
     $id = $_GET["id"];
 
-    // Gunakan Prepared Statement untuk UPDATE (lebih aman)
     $stmt_update = $mysql->prepare("UPDATE bookings SET status = 'disetujui' WHERE id = ?");
 
-    // Bind 'i' (integer) untuk ID
+
     $stmt_update->bind_param("i", $id);
     $stmt_update->execute();
     $stmt_update->close();
 
-    // Redirect ke halaman saat ini setelah update
-    header("Location: index.php?page=pesanan");
-    ob_end_flush(); // Mengirim semua output buffer dan menghentikan buffering
+    ?>
+    <script>
+        window.location.href = "index.php?page=pesanan"
+    </script>
+    <?php
+    ob_end_flush();
     exit;
 }
-
-// --- C. Data Fetch for Display (Menggunakan OOP MySQLi) ---
 $query_tampil = "SELECT 
                     k.id, k.kode, k.status, 
-                    p.nama, p.no_penerbangan, p.kelas, p.asal, p.tujuan, p.harga 
+                    p.nama, p.no_penerbangan, k.kelas, p.asal, p.tujuan, p.harga 
                  FROM bookings k 
                  LEFT JOIN pesawat p ON k.id_pesawat = p.id 
                  ORDER BY k.id DESC";
 
 $tampil = $mysql->query($query_tampil);
 
-// Menghentikan buffering sebelum output HTML
+
 ob_end_clean();
 ?>
 

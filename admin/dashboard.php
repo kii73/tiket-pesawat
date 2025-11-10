@@ -1,36 +1,28 @@
 <?php
-// Catatan: File ini di-include oleh index.php admin, 
-// jadi koneksi database ($mysql) dan session sudah tersedia.
 
-// --- 1. Ambil Data Statistik Ringkasan ---
-
-// Total Users
 $query_users = "SELECT COUNT(id) AS total_users FROM users WHERE role='user'";
 $result_users = $mysql->query($query_users);
 $total_users = $result_users->fetch_assoc()['total_users'] ?? 0;
 
-// Total Pesawat (Penerbangan Terdaftar)
+
 $query_flights = "SELECT COUNT(id) AS total_flights FROM pesawat";
 $result_flights = $mysql->query($query_flights);
 $total_flights = $result_flights->fetch_assoc()['total_flights'] ?? 0;
 
-// Total Pesanan (Kode/Tiket)
 $query_orders = "SELECT COUNT(id) AS total_orders FROM bookings";
 $result_orders = $mysql->query($query_orders);
 $total_orders = $result_orders->fetch_assoc()['total_orders'] ?? 0;
 
-// Total Pesanan Disetujui
+
 $query_approved = "SELECT COUNT(id) AS approved_orders FROM bookings WHERE status='disetujui'";
 $result_approved = $mysql->query($query_approved);
 $approved_orders = $result_approved->fetch_assoc()['approved_orders'] ?? 0;
 
-// Persentase Disetujui
+
 $percent_approved = ($total_orders > 0) ? round(($approved_orders / $total_orders) * 100) : 0;
 
 
-// --- 2. Ambil Data untuk Chart: Pesanan per Bulan (Contoh Sederhana) ---
-// Catatan: Karena tabel 'kode' tidak memiliki created_at, kita akan menggunakan data status pesanan untuk chart.
-// Kita akan membuat chart sederhana berdasarkan status pesanan
+
 
 $query_status = "SELECT 
     SUM(CASE WHEN status = 'disetujui' THEN 1 ELSE 0 END) AS disetujui_count,
@@ -42,7 +34,7 @@ $status_data = $result_status->fetch_assoc();
 $disetujui_count = $status_data['disetujui_count'];
 $menunggu_count = $status_data['menunggu_count'];
 
-// --- 3. Ambil Data untuk Chart: Pesawat Terpopuler (Berdasarkan jumlah kode/pesanan) ---
+
 $query_popular_flights = "SELECT 
     p.nama, COUNT(k.id) AS total_pesanan
     FROM bookings k
@@ -136,15 +128,15 @@ while ($row = $result_popular_flights->fetch_assoc()) {
 </div>
 
 <script>
-    // Data untuk Chart 1: Status Pesanan
+    
     const statusData = {
         labels: ['Disetujui', 'Menunggu'],
         datasets: [{
             label: 'Jumlah Pesanan',
             data: [<?php echo $disetujui_count; ?>, <?php echo $menunggu_count; ?>],
             backgroundColor: [
-                'rgba(40, 167, 69, 0.7)', // Hijau (Success)
-                'rgba(255, 193, 7, 0.7)' // Kuning (Warning)
+                'rgba(40, 167, 69, 0.7)', 
+                'rgba(255, 193, 7, 0.7)' 
             ],
             borderColor: [
                 'rgba(40, 167, 69, 1)',
@@ -154,7 +146,7 @@ while ($row = $result_popular_flights->fetch_assoc()) {
         }]
     };
 
-    // Konfigurasi Chart 1
+    
     const configStatus = {
         type: 'pie',
         data: statusData,
@@ -171,25 +163,24 @@ while ($row = $result_popular_flights->fetch_assoc()) {
         },
     };
 
-    // Render Chart 1
+    
     const orderStatusChart = new Chart(
         document.getElementById('orderStatusChart'),
         configStatus
     );
 
-    // Data untuk Chart 2: Pesawat Terpopuler
+    
     const flightData = {
         labels: <?php echo json_encode($flight_labels); ?>,
         datasets: [{
             label: 'Total Pesanan',
             data: <?php echo json_encode($flight_counts); ?>,
-            backgroundColor: 'rgba(0, 123, 255, 0.5)', // Biru
+            backgroundColor: 'rgba(0, 123, 255, 0.5)', 
             borderColor: 'rgba(0, 123, 255, 1)',
             borderWidth: 1
         }]
     };
 
-    // Konfigurasi Chart 2
     const configFlights = {
         type: 'bar',
         data: flightData,
@@ -208,7 +199,7 @@ while ($row = $result_popular_flights->fetch_assoc()) {
         },
     };
 
-    // Render Chart 2
+   
     const popularFlightsChart = new Chart(
         document.getElementById('popularFlightsChart'),
         configFlights

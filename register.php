@@ -46,7 +46,7 @@ if (isset($_POST['register'])) {
 </head>
 
 <body class="auth-page">
-    <!-- Navbar Sederhana -->
+    
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.php">

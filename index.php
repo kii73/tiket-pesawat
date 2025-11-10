@@ -1,26 +1,25 @@
 <?php
 session_start();
 
-// Asumsi 'koneksi.php' berisi koneksi $mysql (mysqli object)
+
 include "./koneksi.php";
 
-// Query untuk mengambil 4 data pesawat terbaru untuk ditampilkan sebagai 'Promo'
+
 $query = "SELECT * FROM pesawat ORDER BY created_at DESC LIMIT 4";
 $result_pesawat = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
 
-// Inisialisasi variabel $user
+
 $user = [
     "user" => [],
-    "bookings" => [] // Kunci disesuaikan menjadi 'bookings'
+    "bookings" => [] 
 ];
 $is_logged_in = false;
 
-// Cek apakah sesi username ada
+
 if (isset($_SESSION["username"])) {
     $session_username = $_SESSION["username"];
     $is_logged_in = true;
 
-    // 1. Ambil data user menggunakan Prepared Statement
     $stmt_user = $mysql->prepare("SELECT id, nama, role FROM users WHERE username = ?");
     $stmt_user->bind_param("s", $session_username);
     $stmt_user->execute();
@@ -32,7 +31,7 @@ if (isset($_SESSION["username"])) {
         $user["user"] = $user_data;
         $user_id = $user_data["id"];
 
-        // 2. Menggunakan tabel 'bookings' (sesuai skema database)
+        
         $stmt_booking = $mysql->prepare("SELECT id_pesawat, status FROM bookings WHERE id_user = ?");
         $stmt_booking->bind_param("i", $user_id);
         $stmt_booking->execute();
@@ -41,13 +40,13 @@ if (isset($_SESSION["username"])) {
         $user["bookings"] = $bookings_result->fetch_all(MYSQLI_ASSOC);
         $stmt_booking->close();
     } else {
-        // Hancurkan sesi jika data pengguna tidak valid
+       
         session_unset();
         session_destroy();
         $is_logged_in = false;
     }
 }
-// Variabel $result_pesawat akan digunakan di bagian HTML
+
 ?>
 
 
@@ -69,7 +68,7 @@ if (isset($_SESSION["username"])) {
 
 <body>
     <?php
-    // Memuat navbar.php (asumsi file ini juga membutuhkan akses ke $is_logged_in atau $_SESSION)
+  
     include "navbar.php";
     ?>
 
@@ -116,9 +115,9 @@ if (isset($_SESSION["username"])) {
             </div>
             <div class="row g-4" data-animate="animate-fade-in">
                 <?php
-                // Menggunakan variabel yang sudah diubah namanya menjadi $result_pesawat
+               
                 foreach ($result_pesawat as $pesawat) {
-                    // Format harga
+                   
                     $rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
                 ?>
 
@@ -159,33 +158,32 @@ if (isset($_SESSION["username"])) {
                                     </div>
 
                                     <?php
-                                    // Menggunakan $is_logged_in yang sudah didefinisikan di awal
+                                   
                                     $isBooking = [];
 
                                     if ($is_logged_in) {
-                                        // Filter untuk mencari pemesanan tiket pesawat ini (berdasarkan id_pesawat)
-                                        // MENGGUNAKAN KUNCI ARRAY 'bookings' YANG SUDAH DIPERBAIKI
+                                    
                                         $isBooking = array_values(array_filter($user["bookings"], function ($item) use ($pesawat) {
                                             return isset($item["id_pesawat"]) && $item["id_pesawat"] == $pesawat["id"];
                                         }));
                                     }
 
                                     if (!empty($isBooking)) {
-                                        // Logika: User sudah memiliki booking untuk pesawat ini (sudah pesan)
+                                       
                                     ?>
                                         <button class="btn btn-primary" disabled>
                                             <i class="bi bi-x-circle me-1"></i><?= ucfirst($isBooking[0]["status"]) ?>
                                         </button>
                                     <?php
                                     } elseif ($is_logged_in) {
-                                        // Logika: User sudah login dan belum pernah memesan tiket ini
+                                        
                                     ?>
                                         <a href="./konfirmasi.php?pesawat=<?= $pesawat["id"] ?>" class="btn btn-primary">
                                             <i class="bi bi-check-circle me-1"></i>Pilih Tiket
                                         </a>
                                     <?php
                                     } else {
-                                        // Logika: User belum login, arahkan ke login.php
+                                      
                                     ?>
                                         <a href="./login.php" class="btn btn-primary">
                                             <i class="bi bi-box-arrow-in-right me-1"></i>Pilih Tiket (Login)

@@ -1,24 +1,23 @@
 <?php
-// Pastikan sesi dimulai di awal file
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include protection and database connection
+
 include "./koneksi.php";
 
-// Initialize an array to hold the booking history
 $user_history = [];
-$user_id = null; // Inisialisasi ID pengguna
+$user_id = null;
 
-// ========== 1. AUTENTIKASI MENGGUNAKAN SESSION USERNAME ==========
+
 if (isset($_SESSION["username"])) {
     $username = $_SESSION["username"];
 
-    // Fetch the logged-in user's ID from the database using Prepared Statement
+    
     $stmt_user = $mysql->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
     if ($stmt_user === false) {
-        // Handle error prepare statement
+       
         error_log("Error preparing user query: " . $mysql->error);
         header("Location: login.php");
         exit;
@@ -35,10 +34,9 @@ if (isset($_SESSION["username"])) {
     $stmt_user->close();
 }
 
-// Jika ID pengguna ditemukan
+
 if ($user_id) {
-    // ========== 2. & 3. QUERY HISTORY DENGAN PREPARED STATEMENT DAN KOLOM YANG BENAR ==========
-    // Kolom 'kelas' diambil dari tabel KODE (bookings) -> k.kelas
+   
     $query = "
         SELECT 
             p.nama, p.no_penerbangan, p.asal, p.tujuan, 
@@ -50,25 +48,25 @@ if ($user_id) {
         ORDER BY k.id DESC
     ";
 
-    // Menggunakan prepared statement untuk query history
+  
     $stmt_history = $mysql->prepare($query);
     if ($stmt_history === false) {
-        // Handle error prepare statement
+       
         error_log("Error preparing history query: " . $mysql->error);
     } else {
-        // Bind parameter 'i' (integer) untuk id_user
+        
         $stmt_history->bind_param("i", $user_id);
         $stmt_history->execute();
         $history_result = $stmt_history->get_result();
 
-        // If the query is successful, fetch all results
+       
         if ($history_result) {
             $user_history = $history_result->fetch_all(MYSQLI_ASSOC);
         }
         $stmt_history->close();
     }
 } else {
-    // Jika tidak ada username di sesi atau user tidak ditemukan, kembali ke login
+   
     header("Location: login.php");
     exit;
 }
@@ -137,8 +135,8 @@ if ($user_id) {
             <?php else : ?>
                 <div class="row g-4" data-animate="animate-fade-in">
                     <?php foreach ($user_history as $pesanan) :
-                        // Determine badge color based on booking status
-                        $status_class = 'bg-secondary'; // Default color
+                       
+                        $status_class = 'bg-secondary'; 
                         $status_text = strtolower($pesanan["status"]);
 
                         if ($status_text == 'menunggu' || $status_text == 'menunggu persetujuan') {

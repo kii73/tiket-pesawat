@@ -15,7 +15,7 @@ if (isset($_POST['login'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Query rentan SQL Injection - HARAP GANTI DENGAN PREPARED STATEMENT
+   
     $query = "SELECT * FROM users WHERE (username='$username' OR email='$username') AND password=md5('$password')";
     $result = $mysql->query($query);
 
@@ -24,15 +24,14 @@ if (isset($_POST['login'])) {
         $id = $first_data["id"];
         $remember_token = generateUUIDv4();
 
-        // Update token
+       
         $mysql->query("UPDATE users SET remember_token='$remember_token' WHERE id=$id");
 
-        // Set session
+       
         $_SESSION["username"] = $first_data["username"];
         $_SESSION["role"] = $first_data["role"]; 
         $_SESSION["user_id"] = $first_data["id"]; 
 
-        // Pengalihan halaman menggunakan PHP header (lebih baik tanpa JS)
         if ($first_data["role"] == "admin") {
             header("Location: admin");
             exit();

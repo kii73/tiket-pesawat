@@ -20,7 +20,7 @@
 
   <tbody>
     <?php include "../koneksi.php";
-    $tampil=$mysql->query("SELECT*FROM pesawat where no_penerbangan like '$_POST[cari]%' or kelas like'$_POST[cari]%' or asal like'$_POST[cari]%'");
+    $tampil=$mysql->query("SELECT*FROM pesawat where nama like '$_POST[cari]%' or no_penerbangan like '$_POST[cari]%' or kelas like'$_POST[cari]%' or asal like'$_POST[cari]%' or tujuan like '$_POST[cari]%' harga like '$_POST[cari]%'");
     foreach ($tampil as $data) {
       @$no++;
         ?>

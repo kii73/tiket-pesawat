@@ -1,17 +1,16 @@
 <?php
-// Pastikan session_start() dijalankan hanya sekali
+
 if (session_status() === PHP_SESSION_NONE) {
 	session_start();
 }
 
 include "./koneksi.php";
 
-// Pastikan koneksi MySQLi tersedia
+
 if (!isset($mysql) || !$mysql instanceof mysqli) {
 	die("Koneksi database gagal.");
 }
 
-// --- Logic Otentikasi & Booking Session-based (OOP MySQLi & Prepared Statements) ---
 
 $is_logged_in = isset($_SESSION['user_id']);
 $user_id = $is_logged_in ? $_SESSION['user_id'] : null;
@@ -19,9 +18,9 @@ $user_bookings = [];
 $user_data = [];
 
 if ($is_logged_in) {
-	// 1. Fetch data user (opsional, tapi baik untuk konfirmasi)
+	
 	$stmt_user = $mysql->prepare("SELECT id, username, role FROM users WHERE id = ?");
-	// Handle prepare error
+	
 	if ($stmt_user === false) {
 		error_log("Prepare failed (users): " . $mysql->error);
 	} else {
@@ -33,9 +32,7 @@ if ($is_logged_in) {
 	}
 
 
-	// 2. Fetch booking user (bookings)
-	// Ambil hanya id_pesawat dan status untuk pengecekan cepat
-	// PERBAIKAN: Mengganti tabel 'kode' menjadi 'bookings' sesuai skema SQL
+	
 	$stmt_bookings = $mysql->prepare("SELECT id_pesawat, status FROM bookings WHERE id_user = ?");
 	if ($stmt_bookings === false) {
 		error_log("Prepare failed (bookings): " . $mysql->error);
@@ -44,7 +41,7 @@ if ($is_logged_in) {
 		$stmt_bookings->execute();
 		$bookings_result = $stmt_bookings->get_result();
 
-		// Simpan booking dalam array asosiatif dengan id_pesawat sebagai kunci untuk O(1) lookup
+	
 		while ($row = $bookings_result->fetch_assoc()) {
 			$user_bookings[$row['id_pesawat']] = $row;
 		}
@@ -53,19 +50,18 @@ if ($is_logged_in) {
 }
 
 
-// --- Query Semua Tiket ---
+
 $query = "SELECT * FROM pesawat";
 $result_semua_tiket = $mysql->query($query)->fetch_all(MYSQLI_ASSOC);
 
 $result_pencarian = null;
 
-// --- Query Pencarian (OOP MySQLi & Prepared Statements) ---
 if (isset($_GET["dari"]) && isset($_GET["ke"])) {
-	// Tambahkan wildcard dan amankan input
+	
 	$dari_param = "%" . $_GET["dari"] . "%";
 	$ke_param = "%" . $_GET["ke"] . "%";
 
-	// Gunakan Prepared Statement
+	
 	$stmt_search = $mysql->prepare("SELECT * FROM pesawat WHERE asal LIKE ? AND tujuan LIKE ?");
 
 	if ($stmt_search === false) {
@@ -157,7 +153,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 		</div>
 
 		<?php
-		// Cek apakah hasil pencarian ada dan ada parameter 'dari'
+		
 		if (isset($result_pencarian) && isset($_GET["dari"]) && !empty($result_pencarian)) {
 		?>
 			<section class="container">
@@ -173,7 +169,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 						<?php
 						foreach ($result_pencarian as $pesawat) {
 							$rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
-							// Cek status booking
+							
 							$is_booked = $is_logged_in && isset($user_bookings[$pesawat["id"]]);
 							$booking_status = $is_booked ? htmlspecialchars($user_bookings[$pesawat["id"]]['status']) : '';
 						?>
@@ -267,7 +263,7 @@ if (isset($_GET["dari"]) && isset($_GET["ke"])) {
 					<?php
 					foreach ($result_semua_tiket as $pesawat) {
 						$rupiah = "Rp " . number_format($pesawat["harga"], 0, ",", ".");
-						// Cek status booking
+						
 						$is_booked = $is_logged_in && isset($user_bookings[$pesawat["id"]]);
 						$booking_status = $is_booked ? htmlspecialchars($user_bookings[$pesawat["id"]]['status']) : '';
 					?>
