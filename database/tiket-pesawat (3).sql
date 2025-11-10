@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 10 Nov 2025 pada 06.35
+-- Waktu pembuatan: 10 Nov 2025 pada 07.01
 -- Versi server: 8.0.30
 -- Versi PHP: 8.1.10
 
@@ -34,16 +34,21 @@ CREATE TABLE `bookings` (
   `kode` varchar(50) NOT NULL,
   `status` enum('disetujui','menunggu') NOT NULL,
   `kelas` enum('ekonomi','bisnis','first class') NOT NULL,
-  `created_at` varchar(100) NOT NULL
+  `jumlah` int NOT NULL DEFAULT '1',
+  `total_harga` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data untuk tabel `bookings`
 --
 
-INSERT INTO `bookings` (`id`, `id_pesawat`, `id_user`, `kode`, `status`, `kelas`, `created_at`) VALUES
-(23, 3, 8, 'NLXUCU', 'disetujui', 'ekonomi', ''),
-(24, 13, 8, 'ZELCSA', 'disetujui', 'ekonomi', '');
+INSERT INTO `bookings` (`id`, `id_pesawat`, `id_user`, `kode`, `status`, `kelas`, `jumlah`, `total_harga`, `created_at`) VALUES
+(23, 3, 8, 'NLXUCU', 'disetujui', 'ekonomi', 1, 0, '2025-11-10 06:45:37'),
+(24, 13, 8, 'ZELCSA', 'disetujui', 'ekonomi', 1, 0, '2025-11-10 06:45:37'),
+(25, 12, 8, 'TTQKUQ', 'disetujui', 'ekonomi', 1, 0, '2025-11-10 06:45:37'),
+(26, 13, 10, 'IUUOKZ', 'disetujui', 'ekonomi', 1, 0, '2025-11-10 06:47:40'),
+(27, 12, 10, 'OJSJDC', 'disetujui', 'bisnis', 1, 0, '2025-11-10 06:49:46');
 
 -- --------------------------------------------------------
 
@@ -71,8 +76,8 @@ CREATE TABLE `pesawat` (
 
 INSERT INTO `pesawat` (`id`, `nama`, `no_penerbangan`, `asal`, `tujuan`, `waktu_berangkat`, `harga`, `created_at`, `updated_at`, `waktu_tiba`, `kursi_tersedia`) VALUES
 (3, 'Boeing 423423423', 'BN-342', 'malaysia', 'Jakarta', '10:19:33', 120000.00, '2025-09-13 03:20:26', '2025-09-13 03:20:26', '10:36:33', 13),
-(12, 'garuda indonesia', 'GA-001', 'jakarta', 'singapura', '08:30:00', 1200000.00, '2025-11-10 01:23:54', '2025-11-10 01:23:54', '13:30:00', 20),
-(13, 'garuda indonesia', 'GA-2267', 'bandung', 'Jakarta', '09:30:00', 120000.00, '2025-11-10 01:26:00', '2025-11-10 01:26:00', '12:30:00', 16);
+(12, 'garuda indonesia', 'GA-001', 'jakarta', 'singapura', '08:30:00', 1200000.00, '2025-11-10 01:23:54', '2025-11-10 01:23:54', '13:30:00', 16),
+(13, 'garuda indonesia', 'GA-2267', 'bandung', 'Jakarta', '09:30:00', 120000.00, '2025-11-10 01:26:00', '2025-11-10 01:26:00', '12:30:00', 13);
 
 -- --------------------------------------------------------
 
@@ -99,9 +104,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `no_hp`, `jenis_kelamin`, `tanggal_lahir`, `alamat`, `password`, `role`, `remember_token`) VALUES
-(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', '14c5b18a-a157-4444-b3af-4a1ef4487cfd'),
-(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', 'fed88c73-2fbe-4172-88da-9c504473869a'),
-(10, 'mufly', 'mufly', 'kii@gmail.com', '3434554', 'Laki-laki', '2017-07-06', 'sadsfef', 'be6446fa0b2c8a142cc79010cd6c408b', 'user', 'ebbed814-f220-4845-8002-e9679dabb0f2');
+(6, 'Admin', 'admin', 'admin@gmail.com', '08572346789', 'Laki-laki', '2018-06-28', 'Rongga', '21232f297a57a5a743894a0e4a801fc3', 'admin', 'f961ab7f-f63f-4655-8358-9f1806e67deb'),
+(8, 'kii', 'kii', 'kii@gmail.com', '3434554', 'Laki-laki', '2025-10-01', 'bunijaya', 'dde127dd9191cac4bf1837e9b66f1513', 'user', 'd0016ba5-cd7c-4a5c-a4a7-5571ee46e5b3'),
+(10, 'mufly', 'mufly', 'kii@gmail.com', '3434554', 'Laki-laki', '2017-07-06', 'sadsfef', 'be6446fa0b2c8a142cc79010cd6c408b', 'user', '15471d49-6b2a-4376-b793-ad274de977c3');
 
 --
 -- Indexes for dumped tables
@@ -136,7 +141,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT untuk tabel `pesawat`
