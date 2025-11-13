@@ -1,4 +1,9 @@
 <?php
+// TAMPILKAN SEMUA ERROR UNTUK DEBUGGING (HAPUS SETELAH BERHASIL)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
 include "./koneksi.php";
@@ -9,7 +14,6 @@ function generateBookingCode(mysqli $mysql, int $length = 6): string
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $maxIndex = strlen($alphabet) - 1;
 
-    // loop sampai ketemu kode unik (batasi percobaan)
     for ($attempt = 0; $attempt < 10; $attempt++) {
         $code = '';
         for ($i = 0; $i < $length; $i++) {
@@ -17,8 +21,6 @@ function generateBookingCode(mysqli $mysql, int $length = 6): string
             $code .= $alphabet[$idx];
         }
 
-        // cek unik
-        // Catatan: Menggunakan nama tabel 'kode' seperti yang Anda gunakan
         $stmt = $mysql->prepare("SELECT COUNT(*) AS cnt FROM bookings WHERE kode = ?");
         $stmt->bind_param("s", $code);
         $stmt->execute();
@@ -30,28 +32,31 @@ function generateBookingCode(mysqli $mysql, int $length = 6): string
         }
     }
 
-    // fallback: gunakan uniqid jika 10 percobaan gagal (sangat jarang)
     return strtoupper(substr(uniqid('', true), -$length));
 }
 
-$kelas = $_POST['kelas'];
-// Ambil id dari GET atau POST (prefer GET untuk tampilan)
+// -----------------------------------------------------------------------
+// 1. PENGAMBILAN INPUT DAN VALIDASI AWAL
+// -----------------------------------------------------------------------
+$kelas = $_POST['kelas'] ?? 'ekonomi'; // Default 'ekonomi'
+$jumlah_penumpang = (int)($_POST["jumlah"] ?? 1); // Ambil jumlah tiket, default 1
+if ($jumlah_penumpang <= 0) {
+    $jumlah_penumpang = 1;
+}
+
 $id_param = null;
 if (isset($_GET['slug'])) {
-    // ID seharusnya integer, tidak perlu real_escape_string jika langsung cast
     $id_param = (int)$_GET['slug'];
 } elseif (isset($_POST['slug'])) {
     $id_param = (int)$_POST['slug'];
 }
 
 if (empty($id_param)) {
-    // id wajib
     http_response_code(400);
     echo "Parameter id tidak ditemukan.";
     exit;
 }
 
-// Ambil user dari remember_token cookie (blok ini tidak diubah)
 if (!isset($_SESSION["user_id"]) || empty($_SESSION["user_id"])) {
     header("Location: login.php");
     exit;
@@ -59,15 +64,14 @@ if (!isset($_SESSION["user_id"]) || empty($_SESSION["user_id"])) {
 $user_id = $_SESSION["user_id"];
 
 // ambil user
-$stmt = $mysql->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
-$stmt->bind_param("s", $user_id);
+$stmt = $mysql->prepare("SELECT id FROM users WHERE id = ? LIMIT 1");
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $res = $stmt->get_result();
 $user_row = $res->fetch_assoc();
 $stmt->close();
 
 if (!$user_row) {
-    // token tidak valid
     header("Location: login.php");
     exit;
 }
@@ -75,9 +79,8 @@ if (!$user_row) {
 $user_id = (int)$user_row['id'];
 
 // ambil data pesawat berdasarkan ID
-// Query diperbaiki: Menggunakan 'id' dan kolom-kolom yang sesuai skema SQL
 $stmt = $mysql->prepare("SELECT id, nama, no_penerbangan, asal, tujuan, waktu_berangkat, waktu_tiba, harga, kursi_tersedia FROM pesawat WHERE id = ? LIMIT 1");
-$stmt->bind_param("i", $id_param); // 'i' untuk id (integer)
+$stmt->bind_param("i", $id_param); 
 $stmt->execute();
 $res = $stmt->get_result();
 $pesawat = $res->fetch_assoc();
@@ -90,9 +93,13 @@ if (!$pesawat) {
 }
 
 $id_pesawat = (int)$pesawat['id'];
+$harga_satuan = (int)($pesawat['harga'] ?? 0);
+
+// HITUNG TOTAL HARGA DI SINI
+$total_harga = $harga_satuan * $jumlah_penumpang; 
 
 // cek apakah user sudah punya booking untuk pesawat ini
-$stmt = $mysql->prepare("SELECT * FROM bookings WHERE id_user = ? AND id_pesawat = ? LIMIT 1");
+$stmt = $mysql->prepare("SELECT kode, status, jumlah, total_harga FROM bookings WHERE id_user = ? AND id_pesawat = ? LIMIT 1");
 $stmt->bind_param("ii", $user_id, $id_pesawat);
 $stmt->execute();
 $res = $stmt->get_result();
@@ -100,21 +107,23 @@ $existing_booking = $res->fetch_assoc();
 $stmt->close();
 
 $booking_code = "-";
-$status_booking = 'Menunggu persetujuan'; // default display (user friendly)
+$status_booking = 'Menunggu persetujuan'; 
 
-// jika sudah ada booking -> tampilkan info booking (tidak membuat booking baru)
 if ($existing_booking) {
+    // Jika sudah ada booking
     $booking_code = $existing_booking['kode'] ?? "-";
-    // normalisasi status untuk tampilan
     $status_booking = isset($existing_booking['status']) ? ucfirst($existing_booking['status']) : 'Menunggu persetujuan';
+    $jumlah_penumpang = (int)($existing_booking['jumlah'] ?? $jumlah_penumpang);
+    $total_harga = (int)($existing_booking['total_harga'] ?? $total_harga);
 } else {
-    // belum booking -> buat booking baru dengan proteksi stok
+    // -----------------------------------------------------------------------
+    // Booking Baru
+    // -----------------------------------------------------------------------
     try {
         // mulai transaction
         $mysql->begin_transaction();
 
-        // kunci baris pesawat (FOR UPDATE) untuk mencegah race condition
-        // Mengganti 'available_seat' menjadi 'kursi_tersedia'
+        // kunci baris pesawat (FOR UPDATE)
         $stmt = $mysql->prepare("SELECT kursi_tersedia FROM pesawat WHERE id = ? FOR UPDATE");
         $stmt->bind_param("i", $id_pesawat);
         $stmt->execute();
@@ -123,25 +132,33 @@ if ($existing_booking) {
         $stmt->close();
 
         if (!$row) {
-            // pesawat hilang setelah query awal (unlikely)
             $mysql->rollback();
             throw new Exception("Data penerbangan tidak ditemukan saat proses booking.");
         }
 
         $available_seat = (int)$row['kursi_tersedia'];
-        if ($available_seat <= 0) {
-            // tidak tersedia
+        if ($available_seat < $jumlah_penumpang) {
+            // kursi tidak cukup
             $mysql->rollback();
             $booking_code = "-";
-            $status_booking = 'Stok penuh';
+            $status_booking = 'Kursi tidak cukup';
         } else {
-            // buat kode booking unik (tabel kode)
+            // buat kode booking unik
             $new_code = generateBookingCode($mysql, 6);
 
-            // insert booking (status 'menunggu' default)
-            $stmt = $mysql->prepare("INSERT INTO bookings (id_pesawat, id_user, kode, status, kelas) VALUES (?, ?, ?, 'menunggu', ?)");
-            $stmt->bind_param("iiss", $id_pesawat, $user_id, $new_code, $kelas);
-            $stmt->execute();
+            // Query INSERT harus menyertakan jumlah dan total_harga, dan TIDAK ADA TYPO.
+            $stmt = $mysql->prepare("INSERT INTO bookings (id_pesawat, id_user, kode, status, kelas, jumlah, total_harga) VALUES (?, ?, ?, 'menunggu', ?, ?, ?)");
+            
+            // bind_param harus menyertakan 6 variabel (iissii)
+            $stmt->bind_param("iissii", 
+                $id_pesawat, 
+                $user_id, 
+                $new_code, 
+                $kelas, 
+                $jumlah_penumpang, 
+                $total_harga // Variabel ke-6
+            );
+            $stmt->execute(); 
             $insert_id = $stmt->insert_id;
             $stmt->close();
 
@@ -150,10 +167,9 @@ if ($existing_booking) {
                 throw new Exception("Gagal menyimpan booking.");
             }
 
-            $jumlah_penumpang = $_POST["jumlah"];
-            // kurangi kursi_tersedia (Mengganti 'available_seat')
-            $stmt = $mysql->prepare("UPDATE pesawat SET kursi_tersedia = kursi_tersedia - $jumlah_penumpang WHERE id = ?");
-            $stmt->bind_param("i", $id_pesawat);
+            // Gunakan prepared statement yang benar untuk UPDATE
+            $stmt = $mysql->prepare("UPDATE pesawat SET kursi_tersedia = kursi_tersedia - ? WHERE id = ?");
+            $stmt->bind_param("ii", $jumlah_penumpang, $id_pesawat);
             $stmt->execute();
             $stmt->close();
 
@@ -164,13 +180,15 @@ if ($existing_booking) {
         }
     } catch (Exception $e) {
         if ($mysql->errno) {
-            // jika transaction masih aktif atau error, rollback
             @$mysql->rollback();
         }
-        // Log error di server (jika ada mekanisme logging)
         error_log("Booking error: " . $e->getMessage());
+        
+        // 🚨 TAMPILKAN DETAIL ERROR SECARA EKSPLISIT 🚨
+        echo "TERJADI KESALAHAN PADA PROSES BOOKING:\n";
         var_dump($e);
-        // Tampilkan pesan sopan ke user
+        exit; // Hentikan eksekusi setelah menampilkan error
+        
         $booking_code = "-";
         $status_booking = 'Terjadi kesalahan. Coba lagi nanti.';
     }
@@ -179,8 +197,10 @@ if ($existing_booking) {
 // untuk tampilan, escape
 $booking_code_html = htmlspecialchars($booking_code, ENT_QUOTES, 'UTF-8');
 $status_booking_html = htmlspecialchars($status_booking, ENT_QUOTES, 'UTF-8');
-// Label penerbangan disesuaikan dengan kolom 'no_penerbangan', 'asal', dan 'tujuan'
 $flight_label = htmlspecialchars(($pesawat['no_penerbangan'] ?? '') . " — " . ($pesawat['asal'] ?? '') . " → " . ($pesawat['tujuan'] ?? ''), ENT_QUOTES, 'UTF-8');
+$jumlah_penumpang_html = number_format($jumlah_penumpang, 0, ',', '.');
+$total_harga_html = number_format($total_harga, 0, ',', '.');
+
 
 ?>
 <!DOCTYPE html>
@@ -245,6 +265,27 @@ $flight_label = htmlspecialchars(($pesawat['no_penerbangan'] ?? '') . " — " . 
             background: linear-gradient(90deg, #1669c1 60%, #4bb7f5 100%);
             color: #fff;
         }
+        .summary-box {
+            background-color: #f7f9fc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #e3f0fc;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .summary-item strong {
+            color: #1a73e8;
+        }
+        .summary-item.total {
+            border-top: 1px dashed #ccc;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 
@@ -266,7 +307,21 @@ $flight_label = htmlspecialchars(($pesawat['no_penerbangan'] ?? '') . " — " . 
 
                     <div class="kode-unik" id="kodeUnik"><?= $booking_code_html ?></div>
 
-                    <p class="text-center text-muted mb-2">Simpan kode unik ini untuk proses check-in atau konfirmasi pembayaran.</p>
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <span>Harga Satuan:</span>
+                            <span>Rp <?= number_format($harga_satuan, 0, ',', '.') ?></span>
+                        </div>
+                        <div class="summary-item">
+                            <span>**Jumlah Tiket:**</span>
+                            <span>**<?= $jumlah_penumpang_html ?>**</span>
+                        </div>
+                        <div class="summary-item total">
+                            <strong>TOTAL HARGA:</strong>
+                            <strong>Rp <?= $total_harga_html ?></strong>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mt-3 mb-2">Simpan kode unik ini untuk proses check-in atau konfirmasi pembayaran.</p>
 
                     <div class="text-center mb-4">
                         <span class="badge bg-warning text-dark">

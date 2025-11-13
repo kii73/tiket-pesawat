@@ -26,6 +26,8 @@ function get_include_file($page)
       return 'users.php';
     case 'laporan':
       return 'laporan.php';
+    case 'laporan_keuangan':
+      return 'laporan_keuangan.php';
     case 'cari':
       return 'cari.php';
     case 'dashboard':
@@ -109,6 +111,7 @@ function is_active($currentPage, $targetPage)
           <a href="?page=input" class="list-group-item list-group-item-action <?php echo is_active($page, 'input'); ?>">INPUT DATA TIKET</a>
           <a href="?page=pesanan" class="list-group-item list-group-item-action <?php echo is_active($page, 'pesanan'); ?>">DATA PESANAN</a>
           <a href="?page=users" class="list-group-item list-group-item-action <?php echo is_active($page, 'users'); ?>">USERS</a>
+          <a href="?page=laporan_keuangan" class="list-group-item list-group-item-action <?php echo is_active($page, 'laporan_keuangan'); ?>">LAPORAN_KEUANGAN</a>
           <a href="?page=laporan" class="list-group-item list-group-item-action <?php echo is_active($page, 'laporan'); ?>">LAPORAN</a>
           
 
