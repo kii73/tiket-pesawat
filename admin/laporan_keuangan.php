@@ -1,5 +1,6 @@
 <?php
-include "../koneksi.php";
+// Pastikan file koneksi.php dan boot.php sudah tersedia di direktori yang sesuai
+include "../koneksi.php"; 
 include "boot.php";
 
 // Pastikan session sudah dimulai jika belum
@@ -7,13 +8,12 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// -----------------------------------------------------------------------
-// Autentikasi Admin (tetap)
+## 🔒 Autentikasi Admin
 // -----------------------------------------------------------------------
 $user_id = $_SESSION["user_id"] ?? '';
 $is_admin = false;
 
-if (!empty($user_id)) {
+if (!empty($user_id) && isset($mysql)) {
     // Diasumsikan $mysql sudah tersedia dari koneksi.php
     $stmt = $mysql->prepare("SELECT role FROM users WHERE id=?");
     $stmt->bind_param("i", $user_id);
@@ -32,42 +32,51 @@ if (!$is_admin) {
 }
 // -----------------------------------------------------------------------
 
-$current_month = date('Y-m');
-$filter_month = $_GET['month'] ?? $current_month;
+## ⚙️ Logika Filter Tanggal Fleksibel
+// Set default filter ke awal dan akhir bulan berjalan
+$default_start = date('Y-m-01');
+$default_end = date('Y-m-t');
 
-// -----------------------------------------------------------------------
-// A. HITUNG PENGHASILAN (REVENUE) BULANAN (tetap)
+// Ambil filter dari GET. Jika tidak ada, gunakan default.
+$start_date = $_GET['start_date'] ?? $default_start;
+$end_date = $_GET['end_date'] ?? $default_end;
+
+// Format Tanggal Akhir untuk Query SQL: 
+// Tambahkan waktu 23:59:59 agar hasil filter benar-benar inklusif sampai akhir hari tersebut.
+$end_date_query = $end_date . ' 23:59:59'; 
+
+
+## 📊 A. HITUNG PENGHASILAN (REVENUE)
 // -----------------------------------------------------------------------
 $penghasilan_query = $mysql->prepare("
-    SELECT SUM(p.harga * k.jumlah) AS total_penghasilan
+    SELECT IFNULL(SUM(p.harga * k.jumlah), 0) AS total_penghasilan
     FROM bookings k 
     JOIN pesawat p ON k.id_pesawat = p.id
-    WHERE k.status = 'disetujui' AND DATE_FORMAT(k.created_at, '%Y-%m') = ?
+    WHERE k.status = 'disetujui' 
+    AND k.created_at BETWEEN ? AND ?
 ");
-$penghasilan_query->bind_param("s", $filter_month);
+$penghasilan_query->bind_param("ss", $start_date, $end_date_query);
 $penghasilan_query->execute();
 $penghasilan_result = $penghasilan_query->get_result()->fetch_assoc();
 $total_penghasilan = $penghasilan_result['total_penghasilan'] ?? 0;
 $penghasilan_query->close();
 
 
-// -----------------------------------------------------------------------
-// B. HITUNG PENGELUARAN (EXPENSES) BULANAN (tetap)
+## 📉 B. HITUNG PENGELUARAN (EXPENSES)
 // -----------------------------------------------------------------------
 $pengeluaran_query = $mysql->prepare("
-    SELECT SUM(jumlah) AS total_pengeluaran
+    SELECT IFNULL(SUM(jumlah), 0) AS total_pengeluaran
     FROM expenses
-    WHERE DATE_FORMAT(tanggal_pengeluaran, '%Y-%m') = ?
+    WHERE tanggal_pengeluaran BETWEEN ? AND ?
 ");
-$pengeluaran_query->bind_param("s", $filter_month);
+$pengeluaran_query->bind_param("ss", $start_date, $end_date_query);
 $pengeluaran_query->execute();
 $pengeluaran_result = $pengeluaran_query->get_result()->fetch_assoc();
 $total_pengeluaran = $pengeluaran_result['total_pengeluaran'] ?? 0;
 $pengeluaran_query->close();
 
 
-// -----------------------------------------------------------------------
-// C. HITUNG LABA BERSIH (tetap)
+## 💰 C. HITUNG LABA BERSIH
 // -----------------------------------------------------------------------
 $laba_bersih = $total_penghasilan - $total_pengeluaran;
 
@@ -83,21 +92,17 @@ if ($laba_bersih > 0) {
     $laba_class = "text-secondary";
 }
 
-// -----------------------------------------------------------------------
-// D. QUERY DETAIL PENGELUARAN (TABEL) (tetap)
+## 📜 D. QUERY DETAIL PENGELUARAN (TABEL)
 // -----------------------------------------------------------------------
 $detail_pengeluaran_sql = "
     SELECT id, deskripsi, jumlah, tanggal_pengeluaran
     FROM expenses 
-    WHERE DATE_FORMAT(tanggal_pengeluaran, '%Y-%m') = ?
+    WHERE tanggal_pengeluaran BETWEEN ? AND ?
     ORDER BY tanggal_pengeluaran DESC
 ";
 
-$stmt_detail_expense = $mysql->prepare($detail_pengeluaran_sql);
-$stmt_detail_expense->bind_param("s", $filter_month);
-$stmt_detail_expense->execute();
-$tampil_detail_pengeluaran = $stmt_detail_expense->get_result();
-$stmt_detail_expense->close();
+// Simpan query string filter untuk tombol cetak
+$print_query_string = http_build_query(['start_date' => $start_date, 'end_date' => $end_date]);
 
 ?>
 <!DOCTYPE html>
@@ -116,38 +121,6 @@ $stmt_detail_expense->close();
             background-color: #581845 !important;
             color: white;
         }
-
-        /* ------------------------------------------- */
-        /* CSS untuk Print */
-        /* ------------------------------------------- */
-        @media print {
-            /* Sembunyikan elemen yang tidak perlu dicetak */
-            .no-print {
-                display: none !important;
-            }
-
-            /* Hapus margin/padding berlebih dan perbaiki tampilan tabel */
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            .container-fluid {
-                padding: 0 !important;
-                margin-top: 20px;
-            }
-
-            .card {
-                border: 1px solid #ccc !important; /* Tambahkan border untuk kartu di print */
-                box-shadow: none !important;
-            }
-            
-            /* Ganti warna background card agar terlihat di cetakan */
-            .bg-success, .bg-warning, .bg-info {
-                background-color: #f0f0f0 !important;
-                color: #000 !important;
-            }
-        }
     </style>
 </head>
 
@@ -155,27 +128,39 @@ $stmt_detail_expense->close();
 
     <div class="container-fluid mt-3">
 
-        <h3 class="mb-4 header-color">Laporan Laba Rugi Bulanan</h3>
+        <h3 class="mb-4 header-color">Laporan Laba Rugi Berdasarkan Rentang Tanggal</h3>
 
-        <div class="mb-3 no-print">
-            <button class="btn btn-secondary" onclick="window.print()">
+        <div class="mb-3">
+            <a href="cetak_laporan.php?<?= $print_query_string ?>" target="_blank" class="btn btn-secondary">
                 <i class="bi bi-printer"></i> Cetak Laporan
-            </button>
+            </a>
         </div>
-        
-        <form class="row g-3 mb-4 align-items-end no-print" method="GET" action="laporan_keuangan.php">
+
+        ## 🔎 Filter Periode Laporan
+        ---
+        <form class="row g-3 mb-4 align-items-end" method="GET" action="index.php">
+            <input type="hidden" name="page" value="laporan_keuangan">
+            
             <div class="col-md-3">
-                <label for="monthFilter" class="form-label">Pilih Bulan</label>
-                <input type="month" class="form-control" id="monthFilter" name="month" value="<?= htmlspecialchars($filter_month) ?>">
+                <label for="startDate" class="form-label">Tanggal Awal</label>
+                <input type="date" class="form-control" id="startDate" name="start_date" value="<?= htmlspecialchars($start_date) ?>" required>
             </div>
-            <div class="col-md-9">
+            
+            <div class="col-md-3">
+                <label for="endDate" class="form-label">Tanggal Akhir</label>
+                <input type="date" class="form-control" id="endDate" name="end_date" value="<?= htmlspecialchars($end_date) ?>" required>
+            </div>
+            
+            <div class="col-md-6">
                 <button type="submit" class="btn btn-primary me-2">Tampilkan Laporan</button>
             </div>
         </form>
 
-        <h4 class="mt-5 text-center">LAPORAN KEUANGAN BULAN: **<?= date('F Y', strtotime($filter_month . '-01')) ?>**</h4>
+        <h4 class="mt-5 text-center">LAPORAN KEUANGAN PERIODE: **<?= date('d F Y', strtotime($start_date)) ?>** s/d **<?= date('d F Y', strtotime($end_date)) ?>**</h4>
         <hr>
 
+        ## 📈 Ringkasan Keuangan
+        ---
         <div class="row mb-5">
             <div class="col-md-4">
                 <div class="card bg-success text-white">
@@ -208,7 +193,9 @@ $stmt_detail_expense->close();
             </div>
         </div>
 
-        <h5 class="mt-5 header-color">Detail Pengeluaran Bulan Ini</h5>
+        ## 🧾 Detail Pengeluaran
+        ---
+        <h5 class="mt-5 header-color">Detail Pengeluaran Periode Ini</h5>
         <table class="table table-striped table-bordered">
             <thead class="table-custom-header">
                 <tr>
@@ -221,8 +208,14 @@ $stmt_detail_expense->close();
             <tbody>
                 <?php
                 $no = 0;
-                if ($tampil_detail_pengeluaran->num_rows > 0) {
-                    while ($data = $tampil_detail_pengeluaran->fetch_assoc()) {
+                // Menjalankan query untuk detail pengeluaran
+                $stmt_detail_expense_re = $mysql->prepare($detail_pengeluaran_sql);
+                $stmt_detail_expense_re->bind_param("ss", $start_date, $end_date_query);
+                $stmt_detail_expense_re->execute();
+                $tampil_detail_pengeluaran_re = $stmt_detail_expense_re->get_result();
+
+                if ($tampil_detail_pengeluaran_re->num_rows > 0) {
+                    while ($data = $tampil_detail_pengeluaran_re->fetch_assoc()) {
                         $no++;
                 ?>
                         <tr>
@@ -232,9 +225,10 @@ $stmt_detail_expense->close();
                             <td class="text-end">Rp <?= number_format($data['jumlah'], 0, ',', '.') ?></td>
                         </tr>
                     <?php }
+                    $stmt_detail_expense_re->close();
                 } else { ?>
                     <tr>
-                        <td colspan="4" class="text-center text-muted">Tidak ada data pengeluaran untuk bulan ini.</td>
+                        <td colspan="4" class="text-center text-muted">Tidak ada data pengeluaran untuk periode ini.</td>
                     </tr>
                 <?php } ?>
             </tbody>

@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <h3 class="mb-4 text-primary">Edit Data Pengguna: <?= htmlspecialchars($data_user['username']) ?></h3>
         
-        <a href="users.php" class="btn btn-secondary mb-3"><i class="bi bi-arrow-left"></i> Kembali ke Daftar Pengguna</a>
+        <a href="index.php?page=users" class="btn btn-secondary mb-3"><i class="bi bi-arrow-left"></i> Kembali ke Daftar Pengguna</a>
 
         <?php if (!empty($update_message)) { ?>
             <div class="alert alert-<?= $update_status == 'sukses' ? 'success' : 'danger' ?> alert-dismissible fade show" role="alert">

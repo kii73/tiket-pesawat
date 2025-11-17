@@ -50,8 +50,8 @@ if (isset($_POST['register'])) {
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <i class="bi bi-airplane-fill me-2 text-white" style="font-size: 1.5rem;"></i>
-                <span class="fw-bold">SkyTicket</span>
+               
+                <span class="fw-bold">kyyairline</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -126,7 +126,7 @@ if (isset($_POST['register'])) {
                                 <label for="phone" class="form-label">Nomor HP</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light"><i class="bi bi-phone"></i></span>
-                                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Masukkan nomor HP" required>
+                                    <input type="number" class="form-control" id="phone" name="phone" placeholder="Masukkan nomor HP" required>
                                     <div class="invalid-feedback">Masukkan nomor HP</div>
                                 </div>
                             </div>
