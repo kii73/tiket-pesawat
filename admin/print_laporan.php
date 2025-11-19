@@ -1,15 +1,17 @@
 <?php
-include "../koneksi.php"; 
-include "boot.php";
+// Pastikan session sudah dimulai jika belum
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-session_start();
-$user_id = $_SESSION["user_id"] ?? ''; 
+// 1. Koneksi dan Autentikasi (Sama seperti users.php/laporan.php)
+include "../koneksi.php";
 
-// -----------------------------------------------------------------------
-// Autentikasi Admin
-// -----------------------------------------------------------------------
+$user_id = $_SESSION["user_id"] ?? '';
 $is_admin = false;
+
 if (!empty($user_id)) {
+    // Diasumsikan $mysql sudah tersedia dari koneksi.php
     $stmt = $mysql->prepare("SELECT role FROM users WHERE id=?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -22,204 +24,300 @@ if (!empty($user_id)) {
 }
 
 if (!$is_admin) {
+    // Hanya admin yang bisa mencetak
     header("Location: ../index.php");
     exit;
 }
-// -----------------------------------------------------------------------
 
-// -----------------------------------------------------------------------
-// LOGIKA FILTER UNTUK CETAK (PRINT MODE) - MENGGUNAKAN k.created_at
-// -----------------------------------------------------------------------
-$print_mode_type = $_GET['print'] ?? 'false'; 
+// 2. Ambil Parameter Filter
+$print_mode = $_GET['print'] ?? 'true'; // Default mode
 $search_keyword = $_GET['search'] ?? '';
-$filter_month = $_GET['month'] ?? ''; 
-$current_month = date('Y-m'); 
-$current_date = date('Y-m-d'); 
+$filter_month = $_GET['month'] ?? date('Y-m'); // Default bulan saat ini
+$start_date = $_GET['start_date'] ?? ''; // Ambil filter tanggal kustom
+$end_date = $_GET['end_date'] ?? ''; 
 
+// 3. Tentukan Judul Laporan dan Filter WHERE Clause
 $where_clauses = ["k.status = 'disetujui'"];
 $bind_types = "";
 $bind_params = [];
-$print_title = "LAPORAN PESANAN TIKET PESAWAT (DISETUJUI)"; 
-$print_filter_text = "";
+$report_title = "Laporan Penjualan Tiket Pesawat";
+$report_subtitle = "Semua Pesanan yang Disetujui";
 
-if ($print_mode_type === 'harian') {
-    // FIX: Menggunakan k.created_at
-    $where_clauses[] = "DATE(k.created_at) = ?";
-    $bind_types .= "s";
-    $bind_params[] = $current_date;
-    $print_title = "STRUK PENJUALAN TIKET HARI INI";
-    $print_filter_text = "Tanggal: **" . date('d F Y') . "**";
+switch ($print_mode) {
+    case 'harian':
+        $report_title = "Laporan Penjualan Harian";
+        $report_subtitle = "Tanggal: " . date('d F Y');
+        $where_clauses[] = "DATE(k.created_at) = CURDATE()";
+        break;
 
-} elseif ($print_mode_type === 'bulanan') {
-    // FIX: Menggunakan k.created_at
-    $month_to_print = !empty($filter_month) ? $filter_month : $current_month; 
-    $where_clauses[] = "DATE_FORMAT(k.created_at, '%Y-%m') = ?";
-    $bind_types .= "s";
-    $bind_params[] = $month_to_print;
-    $print_title = "STRUK PENJUALAN TIKET BULAN INI";
-    $print_filter_text = "Bulan: **" . date('F Y', strtotime($month_to_print . '-01')) . "**";
-
-} elseif ($print_mode_type === 'true') {
-    // Mode cetak Laporan Penuh (menggunakan filter form)
-    if (!empty($filter_month)) {
-         // FIX: Menggunakan k.created_at
-        $where_clauses[] = "DATE_FORMAT(k.created_at, '%Y-%m') = ?"; 
+    case 'bulanan':
+        // Filter Bulan (bisa dari parameter 'month' atau default bulan ini)
+        $report_title = "Laporan Penjualan Bulanan";
+        $report_subtitle = "Bulan: " . date('F Y', strtotime($filter_month . '-01'));
+        $where_clauses[] = "DATE_FORMAT(k.created_at, '%Y-%m') = ?";
         $bind_types .= "s";
         $bind_params[] = $filter_month;
-    }
-    
-    $filter_text = empty($filter_month) ? 'Semua Waktu' : date('F Y', strtotime($filter_month . '-01'));
-    $search_text = empty($search_keyword) ? 'Tidak Ada' : htmlspecialchars($search_keyword);
-    $print_filter_text = "Filter: **{$filter_text}** | Pencarian: **{$search_text}**";
-}
+        break;
 
-// Pencarian Kata Kunci (berlaku untuk semua mode cetak)
-if (!empty($search_keyword)) {
-    $search = "%" . $search_keyword . "%";
-    $where_clauses[] = "(p.nama LIKE ? OR p.no_penerbangan LIKE ? OR p.asal LIKE ? OR p.tujuan LIKE ? OR k.kode LIKE ?)";
-    $bind_types .= "sssss";
-    for ($i = 0; $i < 5; $i++) {
-        $bind_params[] = $search;
-    }
+    case 'true': // Laporan kustom (menggunakan filter dari URL)
+    default:
+        // --- LOGIKA FILTER RENTANG TANGGAL DARI HALAMAN UTAMA ---
+        if (!empty($start_date) && !empty($end_date)) {
+            $report_subtitle = "Rentang Tanggal: " . date('d/m/Y', strtotime($start_date)) . " s/d " . date('d/m/Y', strtotime($end_date));
+            $where_clauses[] = "DATE(k.created_at) BETWEEN ? AND ?";
+            $bind_types .= "ss";
+            $bind_params[] = $start_date;
+            $bind_params[] = $end_date;
+        } elseif (!empty($start_date)) {
+             $report_subtitle = "Tanggal: " . date('d/m/Y', strtotime($start_date));
+             $where_clauses[] = "DATE(k.created_at) = ?";
+             $bind_types .= "s";
+             $bind_params[] = $start_date;
+        }
+
+        // --- LOGIKA FILTER KATA KUNCI DARI HALAMAN UTAMA ---
+        if (!empty($search_keyword)) {
+            $report_subtitle .= (empty($start_date) && empty($end_date) ? "" : " | ") . "Kata Kunci: " . htmlspecialchars($search_keyword);
+            $search = "%" . $search_keyword . "%";
+            $search_strict = $search_keyword; 
+
+            $where_clauses[] = "(
+                p.nama LIKE ? OR 
+                p.no_penerbangan LIKE ? OR 
+                p.asal LIKE ? OR 
+                p.tujuan LIKE ? OR 
+                k.kode LIKE ? OR
+                DATE(k.created_at) = ? OR 
+                DATE_FORMAT(k.created_at, '%d-%m-%Y') LIKE ?
+            )";
+
+            $bind_types .= "sssssss";
+
+            for ($i = 0; $i < 5; $i++) {
+                $bind_params[] = $search;
+            }
+            
+            $bind_params[] = $search_strict;
+            $bind_params[] = $search; 
+        }
+
+        if (empty($start_date) && empty($search_keyword)) {
+             $report_subtitle = "Semua Pesanan yang Disetujui";
+        }
+        break;
 }
 
 $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(' AND ', $where_clauses) : "";
 
 
-// -----------------------------------------------------------------------
-// QUERY UNTUK DETAIL LAPORAN PEMESANAN (TABEL UTAMA)
-// -----------------------------------------------------------------------
-$tampil_laporan_pesanan = null;
+// 4. Query Data Laporan
 $detail_report_sql = "
     SELECT 
-        k.id, k.kode, k.kelas, p.nama AS nama_pesawat, p.no_penerbangan, p.asal, p.tujuan, p.harga, u.nama AS nama_user
+        k.id, k.kode, k.kelas, k.jumlah, k.total_harga, k.created_at,
+        p.nama AS nama_pesawat, p.no_penerbangan, p.asal, p.tujuan, p.harga AS harga_satuan, 
+        u.nama AS nama_user
     FROM bookings k 
     JOIN pesawat p ON k.id_pesawat = p.id
     JOIN users u ON k.id_user = u.id
     $where_sql
-    ORDER BY k.id DESC
+    ORDER BY k.created_at ASC
 ";
 
-$stmt_detail = $mysql->prepare($detail_report_sql);
+$tampil_laporan_pesanan = null;
+$grand_total_penjualan = 0;
+$grand_total_jumlah = 0;
 
-if (!empty($bind_params)) {
-    $refs = [&$bind_types];
-    foreach ($bind_params as $key => $value) {
-        $refs[] = &$bind_params[$key];
+try {
+    $stmt_detail = $mysql->prepare($detail_report_sql);
+
+    if (!empty($bind_params)) {
+        $refs = [&$bind_types];
+        foreach ($bind_params as $key => $value) {
+            $refs[] = &$bind_params[$key];
+        }
+        // bind_param requires arguments to be passed by reference
+        if (version_compare(PHP_VERSION, '5.6.0', '>=')) {
+             $stmt_detail->bind_param(...$refs);
+        } else {
+             call_user_func_array([$stmt_detail, 'bind_param'], $refs);
+        }
     }
-    call_user_func_array([$stmt_detail, 'bind_param'], $refs);
+
+    $stmt_detail->execute();
+    $tampil_laporan_pesanan = $stmt_detail->get_result();
+    $stmt_detail->close();
+} catch (Exception $e) {
+    die("Kesalahan database saat membuat laporan: " . $e->getMessage());
 }
 
-$stmt_detail->execute();
-$tampil_laporan_pesanan = $stmt_detail->get_result();
-$stmt_detail->close();
 ?>
-
-<script>
-window.onload = function() {
-    // 1. Panggil dialog cetak
-    window.print();
-    
-    // 2. Deteksi penutupan dialog cetak
-    const mediaQueryList = window.matchMedia('print');
-
-    // Listener (untuk peramban modern)
-    if (window.matchMedia) {
-        mediaQueryList.addListener(function(mql) {
-            if (!mql.matches) {
-                // Ketika dialog print ditutup
-                window.close(); // Tutup jendela cetak
-            }
-        });
-    }
-
-    // Fallback (untuk peramban yang tidak mendukung listener/jika gagal)
-    setTimeout(function() {
-        if (!mediaQueryList.matches) {
-             window.close();
-        }
-    }, 500); 
-};
-</script>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $print_title ?></title>
+    <title><?= $report_title ?></title>
     <style>
-        .header-color { color: #008080 !important; }
-        .table-custom-header { background-color: #581845 !important; color: white; }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            margin: 20px;
+        }
 
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 16pt;
+        }
+
+        .header p {
+            margin: 5px 0 10px 0;
+            font-size: 11pt;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+        }
+
+        .total-row th,
+        .total-row td {
+            background-color: #ddd;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Style untuk Print */
         @media print {
-            .container-fluid { width: 100%; margin: 0; padding: 0; }
-            body { font-size: 10pt; }
-            .table-bordered th, .table-bordered td { border: 1px solid #000 !important; }
-            .table-custom-header th { color: black !important; background-color: #f0f0f0 !important; } 
-            .mb-2 { margin-bottom: 0.5rem !important; }
-            .text-danger { color: #dc3545 !important; }
-            .table-info { background-color: #cfe2ff !important; }
+            body {
+                margin: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
         }
     </style>
 </head>
 
-<body>
-
-    <div class="container-fluid">
-        
-        <div class="print-content">
-            <h3 class="text-center header-color mb-2"><?= $print_title ?></h3>
-            <p class="text-center">
-                <?= $print_filter_text ?>
-            </p>
-            <hr>
-        </div>
-
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr class="table-custom-header">
-                    <th scope="col">No</th>
-                    <th scope="col">Kode Booking</th>
-                    <th scope="col">Nama Pemesan</th>
-                    <th scope="col">Pesawat (No. Penerbangan)</th>
-                    <th scope="col">Asal - Tujuan</th>
-                    <th scope="col">Kelas</th>
-                    <th scope="col">Harga</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $no = 0;
-                $total_harga = 0; 
-                if ($tampil_laporan_pesanan && $tampil_laporan_pesanan->num_rows > 0) {
-                    while ($data = $tampil_laporan_pesanan->fetch_assoc()) {
-                        $no++;
-                        $total_harga += $data['harga'];
-                ?>
-                        <tr>
-                            <th scope="row"><?= $no; ?></th>
-                            <td class="fw-bold text-danger"><?= htmlspecialchars($data['kode']) ?></td>
-                            <td><?= htmlspecialchars($data['nama_user']) ?></td>
-                            <td><?= htmlspecialchars($data['nama_pesawat']) ?> (<?= htmlspecialchars($data['no_penerbangan']) ?>)</td>
-                            <td><?= htmlspecialchars($data['asal']) ?> - <?= htmlspecialchars($data['tujuan']) ?></td>
-                            <td><?= ucfirst(htmlspecialchars($data['kelas'])) ?></td>
-                            <td>Rp <?= number_format($data['harga'], 0, ',', '.') ?></td>
-                        </tr>
-                    <?php }
-                } else { ?>
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">Tidak ada data pesanan yang disetujui untuk kriteria ini.</td>
-                    </tr>
-                <?php } ?>
-            </tbody>
-            <tfoot>
-                <tr class="table-info fw-bold">
-                    <td colspan="6" class="text-end">TOTAL PENJUALAN</td>
-                    <td>Rp <?= number_format($total_harga, 0, ',', '.') ?></td>
-                </tr>
-            </tfoot>
-        </table>
+<body onload="window.print()">
+    <div class="header">
+        <h1>LAPORAN PENJUALAN TIKET PESAWAT</h1>
+        <p><?= $report_title ?> - <?= $report_subtitle ?></p>
+        <p style="border:none; font-size: 9pt;">Dicetak pada: <?= date('d F Y H:i:s') ?></p>
     </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">No</th>
+                <th style="width: 10%;">Tanggal</th>
+                <th style="width: 10%;">Kode Booking</th>
+                <th style="width: 15%;">Nama Pemesan</th>
+                <th style="width: 15%;">Penerbangan</th>
+                <th style="width: 10%;">Asal - Tujuan</th>
+                <th style="width: 5%;">Kelas</th>
+                <th style="width: 5%;">Jml. Tiket</th>
+                <th style="width: 10%;">Harga Satuan</th>
+                <th style="width: 15%;">Total Harga Jual</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $no = 0;
+            if ($tampil_laporan_pesanan && $tampil_laporan_pesanan->num_rows > 0) {
+                while ($data = $tampil_laporan_pesanan->fetch_assoc()) {
+                    $no++;
+                    $grand_total_penjualan += $data['total_harga'];
+                    $grand_total_jumlah += $data['jumlah'];
+            ?>
+                    <tr>
+                        <td class="text-center"><?= $no; ?></td>
+                        <td><?= date('d/m/Y', strtotime($data['created_at'])) ?></td>
+                        <td><?= htmlspecialchars($data['kode']) ?></td>
+                        <td><?= htmlspecialchars($data['nama_user']) ?></td>
+                        <td><?= htmlspecialchars($data['nama_pesawat']) ?> (<?= htmlspecialchars($data['no_penerbangan']) ?>)</td>
+                        <td><?= htmlspecialchars($data['asal']) ?> - <?= htmlspecialchars($data['tujuan']) ?></td>
+                        <td><?= ucfirst(htmlspecialchars($data['kelas'])) ?></td>
+                        <td class="text-center"><?= number_format($data['jumlah'], 0, ',', '.') ?></td>
+                        <td class="text-right">Rp <?= number_format($data['harga_satuan'], 0, ',', '.') ?></td>
+                        <td class="text-right">Rp <?= number_format($data['total_harga'], 0, ',', '.') ?></td>
+                    </tr>
+                <?php }
+            } else { ?>
+                <tr>
+                    <td colspan="10" class="text-center">Tidak ada data pesanan yang disetujui untuk kriteria ini.</td>
+                </tr>
+            <?php } ?>
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <th colspan="7" class="text-right">TOTAL KESELURUHAN (Tiket & Penjualan):</th>
+                <td class="text-center"><?= number_format($grand_total_jumlah, 0, ',', '.') ?></td>
+                <td colspan="1"></td>
+                <td class="text-right">Rp <?= number_format($grand_total_penjualan, 0, ',', '.') ?></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="no-print" style="text-align: center; margin-top: 30px;">
+        <button onclick="goBackToReport()" style="padding: 10px 20px; cursor: pointer;">Kembali ke Laporan</button>
+    </div>
+
+    <script>
+        // Fungsi untuk mengarahkan pengguna kembali ke halaman laporan utama
+        function goBackToReport() {
+            // Mengarahkan kembali ke halaman laporan di dashboard admin
+            window.location.replace("index.php?page=laporan");
+        }
+
+        (function() {
+            // 1. Mendeteksi ketika dialog cetak (print dialog) ditutup (Didukung oleh Firefox/IE)
+            window.addEventListener('afterprint', goBackToReport);
+
+            // 2. Alternatif/Fallback untuk mendeteksi penutupan print dialog (Chrome/Edge modern)
+            if (window.matchMedia) {
+                var mediaQueryList = window.matchMedia('print');
+                mediaQueryList.addListener(function(mql) {
+                    if (!mql.matches) {
+                        // Jika media query tidak cocok dengan 'print' lagi, berarti dialog ditutup
+                        // Beri penundaan singkat untuk keandalan
+                        setTimeout(goBackToReport, 50); 
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
+
 </html>
